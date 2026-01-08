@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Emergency services",
+    "number": "911",
+    "icon": "local_police_outlined",
+    "accentColor": "#FA8072"
+  },
+  {
+    "name": "Mental health line",
+    "number": "988",
+    "icon": "favorite_border",
+    "accentColor": "#FFC857"
+  },
+  {
+    "name": "Medical advice",
+    "number": "112",
+    "icon": "volunteer_activism_outlined",
+    "accentColor": "#6CC5A1"
+  }
+]
