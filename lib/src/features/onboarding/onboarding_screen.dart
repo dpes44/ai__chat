@@ -69,7 +69,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(32.0),
+              padding: const EdgeInsets.fromLTRB(32, 16, 32, 32),
               child: Column(
                 children: [
                   Row(
@@ -79,15 +79,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       (index) => AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.symmetric(horizontal: 4),
-                        height: 8,
-                        width: _currentPage == index ? 24 : 8,
+                        height: 6,
+                        width: _currentPage == index ? 28 : 6,
                         decoration: BoxDecoration(
                           color: _currentPage == index
                               ? AppColors.primary
-                              : AppColors.secondary.withValues(
-                                  alpha: 255 * 0.5,
-                                ),
-                          borderRadius: BorderRadius.circular(4),
+                              : AppColors.divider,
+                          borderRadius: BorderRadius.circular(3),
                         ),
                       ),
                     ),
@@ -112,21 +110,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           );
                         }
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 4,
-                      ),
                       child: Text(
                         _currentPage == onboardingData.length - 1
                             ? strings.startChatting
                             : strings.next,
                         style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -143,7 +133,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       },
                       child: Text(
                         strings.skip,
-                        style: TextStyle(color: AppColors.accent),
+                        style: TextStyle(color: AppColors.textTertiary),
                       ),
                     ),
                 ],

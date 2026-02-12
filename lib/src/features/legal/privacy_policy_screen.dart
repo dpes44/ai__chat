@@ -9,21 +9,25 @@ class PrivacyPolicyScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Privacy Policy')),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: ListView(
           children: [
             Text(
               'Privacy Policy',
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textDark,
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
             Text(
               'This is a placeholder for your privacy practices. Describe data handling, storage, and user rights here.',
-              style: TextStyle(color: AppColors.textLight, height: 1.5),
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                height: 1.6,
+                fontSize: 15,
+              ),
             ),
           ],
         ),

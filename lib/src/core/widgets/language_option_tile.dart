@@ -19,26 +19,17 @@ class LanguageOptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        width: 150,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        width: 160,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primary.withValues(alpha: 255 * 0.12)
-              : Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          color: selected ? AppColors.primarySurface : Colors.white,
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.secondary,
-            width: selected ? 2 : 1,
+            color: selected ? AppColors.primary : AppColors.divider,
+            width: selected ? 1.5 : 1,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: Row(
           children: [
@@ -49,7 +40,7 @@ class LanguageOptionTile extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   color: AppColors.textDark,
                 ),
               ),
@@ -58,7 +49,7 @@ class LanguageOptionTile extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               child: selected
                   ? Icon(
-                      Icons.check_circle,
+                      Icons.check_circle_rounded,
                       color: AppColors.primary,
                       key: const ValueKey('check'),
                     )

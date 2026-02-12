@@ -87,71 +87,53 @@ class _NicknameScreenState extends State<NicknameScreen> {
         automaticallyImplyLeading: false,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Pick a nickname',
               style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textDark,
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'This helps personalize your experience. You can use any name you like.',
               style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textLight,
+                fontSize: 15,
+                color: AppColors.textSecondary,
                 height: 1.6,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             TextField(
               controller: _controller,
               onChanged: _updateValidity,
               autofocus: true,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Nickname',
                 hintText: 'e.g., Sunbeam',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(
-                    color: AppColors.primary,
-                    width: 2,
-                  ),
-                ),
               ),
             ),
             if (_error != null) ...[
               const SizedBox(height: 10),
               Text(
                 _error!,
-                style: const TextStyle(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.w600,
+                style: TextStyle(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
             const Spacer(),
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 56,
               child: ElevatedButton(
                 onPressed: _isValid && !_isSubmitting ? _submit : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 4,
-                ),
                 child: _isSubmitting
                     ? const SizedBox(
                         width: 20,
@@ -165,7 +147,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
                     : const Text(
                         'Continue',
                         style:
-                            TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                            TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                       ),
               ),
             ),

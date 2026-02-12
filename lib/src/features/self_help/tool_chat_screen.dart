@@ -122,101 +122,111 @@ class _ToolChatScreenState extends State<ToolChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.tool.nameEn),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFE9F6F1), Color(0xFFF5FAF8)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          itemCount: _messages.length,
-          itemBuilder: (context, index) {
-            final msg = _messages[index];
+      appBar: AppBar(title: Text(widget.tool.nameEn)),
+      body: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+        itemCount: _messages.length,
+        itemBuilder: (context, index) {
+          final msg = _messages[index];
+
+          if (msg.isUser) {
             return Align(
-              alignment: msg.isUser
-                  ? Alignment.centerRight
-                  : Alignment.centerLeft,
+              alignment: Alignment.centerRight,
               child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: msg.isUser
-                      ? AppColors.primary.withValues(alpha: 255 * 0.9)
-                      : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.shadow,
-                      blurRadius: 10,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      msg.text,
-                      style: TextStyle(
-                        color: msg.isUser
-                            ? Colors.white
-                            : msg.isFeedback
-                            ? AppColors.primary
-                            : AppColors.textDark,
-                        fontSize: 15,
-                        fontWeight: msg.isFeedback
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        height: 1.4,
-                      ),
-                    ),
-                    if (!msg.isUser && msg.options != null) ...[
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          ...msg.options!.map((opt) {
-                            final label =
-                                context.appLanguage == AppLanguage.nepali
-                                ? opt.labelNp
-                                : opt.labelEn;
-                            return ChoiceChip(
-                              label: Text(label),
-                              selected: false,
-                              onSelected: (_) =>
-                                  _answer(label, score: opt.score),
-                              selectedColor: AppColors.primary.withValues(
-                                alpha: 255 * 0.14,
-                              ),
-                              labelStyle: TextStyle(
-                                color: AppColors.textDark,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            );
-                          }),
-                          ActionChip(
-                            label: const Text('Skip'),
-                            onPressed: _skip,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.72,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.userBubble,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(6),
+                  ),
+                ),
+                child: Text(
+                  msg.text,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    height: 1.4,
+                  ),
                 ),
               ),
             );
-          },
-        ),
+          }
+
+          return Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.all(16),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.85,
+              ),
+              decoration: const BoxDecoration(
+                color: AppColors.aiBubble,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                  bottomLeft: Radius.circular(6),
+                  bottomRight: Radius.circular(20),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    msg.text,
+                    style: TextStyle(
+                      color: msg.isFeedback
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
+                      fontSize: 15,
+                      fontWeight:
+                          msg.isFeedback ? FontWeight.w600 : FontWeight.w400,
+                      height: 1.45,
+                    ),
+                  ),
+                  if (msg.options != null && msg.options!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ...msg.options!.map((opt) {
+                          final label =
+                              context.appLanguage == AppLanguage.nepali
+                              ? opt.labelNp
+                              : opt.labelEn;
+                          return ChoiceChip(
+                            label: Text(label),
+                            selected: false,
+                            onSelected: (_) =>
+                                _answer(label, score: opt.score),
+                          );
+                        }),
+                        ActionChip(
+                          label: const Text('Skip'),
+                          onPressed: _skip,
+                          backgroundColor: AppColors.primarySurface,
+                          side: const BorderSide(color: AppColors.divider),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

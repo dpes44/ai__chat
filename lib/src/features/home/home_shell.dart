@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
-import 'package:ai_chat/src/core/constants/app_strings.dart';
 import 'package:ai_chat/src/features/chat/chat_screen.dart';
 import 'package:ai_chat/src/features/emergency/emergency_contacts_screen.dart';
 import 'package:ai_chat/src/features/forum/forum_screen.dart';
@@ -38,7 +37,6 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final strings = context.strings;
     final nickname = widget.nickname?.trim().isNotEmpty == true
         ? widget.nickname!.trim()
         : 'You';
@@ -84,12 +82,16 @@ class _HomeShellState extends State<HomeShell> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(strings.appTitle),
+        title: Text(
+          'Hey, $nickname',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
         actions: [
           PopupMenuButton<_ProfileMenu>(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
             position: PopupMenuPosition.under,
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -108,7 +110,10 @@ class _HomeShellState extends State<HomeShell> {
               PopupMenuItem(
                 value: _ProfileMenu.version,
                 enabled: false,
-                child: const Text('Version 1.0.0'),
+                child: Text(
+                  'Version 1.0.0',
+                  style: TextStyle(color: AppColors.textTertiary),
+                ),
               ),
               PopupMenuItem(
                 value: _ProfileMenu.logout,
@@ -144,9 +149,7 @@ class _HomeShellState extends State<HomeShell> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: CircleAvatar(
-                backgroundColor: AppColors.primary.withValues(
-                  alpha: 255 * 0.12,
-                ),
+                backgroundColor: AppColors.primarySurface,
                 foregroundColor: AppColors.primary,
                 child: Text(initial),
               ),
@@ -161,23 +164,32 @@ class _HomeShellState extends State<HomeShell> {
           child: IndexedStack(index: _selectedIndex, children: pages),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textLight,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        items: destinations
-            .map(
-              (d) => BottomNavigationBarItem(
-                icon: Icon(d.icon),
-                activeIcon: Icon(d.selectedIcon),
-                label: d.label,
-              ),
-            )
-            .toList(),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(color: AppColors.divider, width: 0.5),
+          ),
+        ),
+        child: NavigationBar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (index) =>
+              setState(() => _selectedIndex = index),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          indicatorColor: AppColors.primarySurface,
+          height: 64,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+          destinations: destinations
+              .map(
+                (d) => NavigationDestination(
+                  icon: Icon(d.icon, color: AppColors.textTertiary),
+                  selectedIcon: Icon(d.selectedIcon, color: AppColors.primary),
+                  label: d.label,
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }

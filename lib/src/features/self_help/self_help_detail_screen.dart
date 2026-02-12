@@ -18,26 +18,37 @@ class SelfHelpDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: ListView(
           children: [
             Text(
               title,
               style: TextStyle(
                 fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textDark,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               summary,
-              style: TextStyle(color: AppColors.textLight, height: 1.5),
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                height: 1.5,
+                fontSize: 15,
+              ),
             ),
-            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Divider(color: AppColors.divider, thickness: 0.5),
+            ),
             Text(
               body,
-              style: TextStyle(color: AppColors.textDark, height: 1.6),
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                height: 1.6,
+                fontSize: 15,
+              ),
             ),
           ],
         ),
