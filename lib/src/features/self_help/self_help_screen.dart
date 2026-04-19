@@ -46,9 +46,7 @@ class _SelfHelpScreenState extends State<SelfHelpScreen> {
             return GestureDetector(
               onTap: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => ToolChatScreen(tool: tool),
-                  ),
+                  MaterialPageRoute(builder: (_) => ToolChatScreen(tool: tool)),
                 );
               },
               child: Container(

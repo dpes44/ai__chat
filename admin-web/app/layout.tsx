@@ -1,0 +1,89 @@
+import "./globals.css";
+import type { Metadata } from "next";
+import Script from "next/script";
+
+import NavBar from "@/components/NavBar";
+
+export const metadata: Metadata = {
+  title: "Man Ko Sathi Admin",
+  description: "AI routing and operations dashboard",
+};
+
+const criticalFallbackCss = `
+*{box-sizing:border-box}
+:root{--bg:#1a1a1a;--panel:#c7c7c7;--panel-2:#b6b6b6;--text:#111;--muted:#333;--line-dark:#5a5a5a;--line-light:#f3f3f3;--accent:#0a246a;--accent-2:#1f3f9d;--danger:#8d1f1f;--ok:#1f5f2d}
+html,body{margin:0;padding:0;background:linear-gradient(45deg,#1b1b1b 25%,#202020 25%,#202020 50%,#1b1b1b 50%,#1b1b1b 75%,#202020 75%,#202020);background-size:12px 12px;color:var(--text);font-family:Tahoma,"Segoe UI",Arial,sans-serif;font-size:12px;line-height:1.3}
+a{color:inherit;text-decoration:none}
+.desktop-theme{min-height:100vh}
+.shell{max-width:1180px;margin:10px auto;padding:0 10px 16px}
+.topbar{border-bottom:1px solid #000;background:linear-gradient(#14274e,#0a1631);color:#fff;box-shadow:inset 0 -1px 0 #4d6ba7}
+.topbar-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:5px 10px;gap:10px}
+.brand{font-weight:700;letter-spacing:.2px;font-size:12px}
+.menu-bar{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.menu-bar a{display:inline-block;border:1px solid rgba(255,255,255,.3);padding:2px 8px;background:rgba(255,255,255,.08);font-size:11px}
+.menu-bar a:hover{background:rgba(255,255,255,.16)}
+.desktop-window,.card{background:var(--panel);border-top:2px solid var(--line-light);border-left:2px solid var(--line-light);border-right:2px solid var(--line-dark);border-bottom:2px solid var(--line-dark);margin-bottom:10px}
+.window-title{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;font-weight:700;font-size:11px;padding:4px 7px;border-bottom:1px solid #071338}
+.window-body,.card{padding:8px}
+.login-window{max-width:420px;margin:26px auto}
+h1,h2,h3,h4,h5,h6{margin:0 0 6px;font-size:13px;font-weight:700}
+p{margin:4px 0}
+.hint{color:var(--muted);font-size:11px}
+.error{color:var(--danger);font-weight:700;margin-top:6px}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.form-grid{display:grid;gap:8px}
+.form-grid-2{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.full-col{grid-column:1 / -1}
+label{display:inline-block;margin-bottom:3px;font-weight:700;font-size:11px}
+input,select,textarea,button{font:inherit}
+input,select,textarea{width:100%;border-top:1px solid #6f6f6f;border-left:1px solid #6f6f6f;border-right:1px solid #fff;border-bottom:1px solid #fff;background:#fff;color:#111;padding:4px 6px;border-radius:0;outline:none}
+textarea{resize:vertical}
+input:focus,select:focus,textarea:focus{box-shadow:inset 0 0 0 1px var(--accent-2)}
+button{border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #6f6f6f;border-bottom:1px solid #6f6f6f;background:linear-gradient(#e9e9e9,#cfcfcf);color:#111;padding:4px 10px;border-radius:0;cursor:pointer;min-height:24px}
+button:active{border-top-color:#6f6f6f;border-left-color:#6f6f6f;border-right-color:#fff;border-bottom-color:#fff}
+button:disabled{cursor:not-allowed;opacity:.65}
+button.btn-primary{background:linear-gradient(#d7e3ff,#a7bbef)}
+.actions-row{margin-top:10px;display:flex;gap:8px;align-items:center}
+.table{width:100%;border-collapse:separate;border-spacing:0;border-top:1px solid #6f6f6f;border-left:1px solid #6f6f6f}
+.table th,.table td{border-right:1px solid #fff;border-bottom:1px solid #fff;padding:4px 6px;text-align:left;vertical-align:top;font-size:11px}
+.table th{background:var(--panel-2);font-weight:700}
+.badge{display:inline-block;border:1px solid #2d4f91;background:#d4e2ff;color:#0c2e6f;padding:1px 6px;font-size:10px}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-top:8px}
+.metric-box{padding:6px;background:#eee;border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #6f6f6f;border-bottom:1px solid #6f6f6f}
+.metric-box .label{font-size:10px;color:#444}
+.metric-box .value{font-size:14px;font-weight:700;margin-top:2px}
+`;
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: criticalFallbackCss }} />
+      </head>
+      <body className="desktop-theme">
+        <Script id="mksh-unregister-sw" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations()
+                .then((regs) => regs.forEach((reg) => reg.unregister()))
+                .catch(() => {});
+            }
+            if ('caches' in window) {
+              caches.keys()
+                .then((keys) =>
+                  Promise.all(
+                    keys
+                      .filter((name) => name.includes('workbox') || name.includes('next') || name.includes('flutter'))
+                      .map((name) => caches.delete(name))
+                  )
+                )
+                .catch(() => {});
+            }
+          `}
+        </Script>
+        <NavBar />
+        <main className="shell">{children}</main>
+      </body>
+    </html>
+  );
+}

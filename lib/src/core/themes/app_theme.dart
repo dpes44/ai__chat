@@ -70,22 +70,14 @@ final ThemeData appTheme = ThemeData(
       elevation: 0,
       shadowColor: Colors.transparent,
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
-      textStyle: GoogleFonts.poppins(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      textStyle: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
     ),
   ),
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
       foregroundColor: AppColors.primary,
-      textStyle: GoogleFonts.poppins(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-      ),
+      textStyle: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
     ),
   ),
   inputDecorationTheme: InputDecorationTheme(
@@ -114,9 +106,7 @@ final ThemeData appTheme = ThemeData(
     color: AppColors.surface,
     elevation: 0,
     shadowColor: Colors.transparent,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     margin: const EdgeInsets.only(bottom: 12),
   ),
   chipTheme: ChipThemeData(
@@ -127,9 +117,7 @@ final ThemeData appTheme = ThemeData(
       fontWeight: FontWeight.w500,
       color: AppColors.textPrimary,
     ),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     side: const BorderSide(color: AppColors.divider),
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
@@ -143,24 +131,18 @@ final ThemeData appTheme = ThemeData(
     elevation: 0,
   ),
   popupMenuTheme: PopupMenuThemeData(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     elevation: 4,
     shadowColor: AppColors.shadow,
     color: AppColors.surface,
   ),
   dialogTheme: DialogThemeData(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
   ),
   snackBarTheme: SnackBarThemeData(
     backgroundColor: AppColors.primary,
     behavior: SnackBarBehavior.floating,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
   ),
   colorScheme: ColorScheme.fromSeed(
     seedColor: AppColors.primary,

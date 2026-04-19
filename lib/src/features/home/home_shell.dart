@@ -8,13 +8,19 @@ import 'package:ai_chat/src/features/therapist/therapist_screen.dart';
 import 'package:ai_chat/src/features/settings/settings_screen.dart';
 import 'package:ai_chat/src/features/legal/privacy_policy_screen.dart';
 import 'package:ai_chat/src/features/legal/terms_screen.dart';
-import 'package:ai_chat/src/features/onboarding/nickname_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ai_chat/src/services/auth_service.dart';
 
 class HomeShell extends StatefulWidget {
-  final String? nickname;
+  final String nickname;
+  final String currentUserId;
+  final bool isGuest;
 
-  const HomeShell({super.key, this.nickname});
+  const HomeShell({
+    super.key,
+    required this.nickname,
+    required this.currentUserId,
+    required this.isGuest,
+  });
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -22,23 +28,16 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _selectedIndex = 0;
+  final AuthService _authService = AuthService();
 
-  Future<void> _logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('nickname');
-    if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (_) => const NicknameScreen(),
-      ),
-      (route) => false,
-    );
+  Future<void> _logout() async {
+    await _authService.signOut();
   }
 
   @override
   Widget build(BuildContext context) {
-    final nickname = widget.nickname?.trim().isNotEmpty == true
-        ? widget.nickname!.trim()
+    final nickname = widget.nickname.trim().isNotEmpty
+        ? widget.nickname.trim()
         : 'You';
     final initial = nickname.isNotEmpty
         ? nickname.characters.first.toUpperCase()
@@ -76,7 +75,7 @@ class _HomeShellState extends State<HomeShell> {
       const ChatScreen(),
       SelfHelpScreen(),
       TherapistScreen(),
-      ForumScreen(nickname: nickname),
+      ForumScreen(nickname: nickname, currentUserId: widget.currentUserId),
       EmergencyContactsScreen(),
     ];
 
@@ -117,7 +116,7 @@ class _HomeShellState extends State<HomeShell> {
               ),
               PopupMenuItem(
                 value: _ProfileMenu.logout,
-                child: const Text('Logout'),
+                child: Text(widget.isGuest ? 'Logout guest session' : 'Logout'),
               ),
             ],
             onSelected: (value) {
@@ -140,7 +139,7 @@ class _HomeShellState extends State<HomeShell> {
                   );
                   break;
                 case _ProfileMenu.logout:
-                  _logout(context);
+                  _logout();
                   break;
                 case _ProfileMenu.version:
                   break;
@@ -167,9 +166,7 @@ class _HomeShellState extends State<HomeShell> {
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(
-            top: BorderSide(color: AppColors.divider, width: 0.5),
-          ),
+          border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
         ),
         child: NavigationBar(
           selectedIndex: _selectedIndex,

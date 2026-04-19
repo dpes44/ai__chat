@@ -190,8 +190,9 @@ class _ToolChatScreenState extends State<ToolChatScreen> {
                           ? AppColors.primary
                           : AppColors.textPrimary,
                       fontSize: 15,
-                      fontWeight:
-                          msg.isFeedback ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: msg.isFeedback
+                          ? FontWeight.w600
+                          : FontWeight.w400,
                       height: 1.45,
                     ),
                   ),
@@ -209,8 +210,7 @@ class _ToolChatScreenState extends State<ToolChatScreen> {
                           return ChoiceChip(
                             label: Text(label),
                             selected: false,
-                            onSelected: (_) =>
-                                _answer(label, score: opt.score),
+                            onSelected: (_) => _answer(label, score: opt.score),
                           );
                         }),
                         ActionChip(

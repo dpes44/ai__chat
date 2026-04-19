@@ -1,0 +1,186 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthed() && request.auth.uid == uid;
+    }
+
+    function isThreadAuthor() {
+      return isAuthed() && resource.data.authorUid == request.auth.uid;
+    }
+
+    function validUserProfileWrite(uid) {
+      return isOwner(uid) &&
+        request.resource.data.uid == uid &&
+        request.resource.data.nickname is string &&
+        request.resource.data.nickname.size() > 0 &&
+        request.resource.data.nickname.size() <= 40 &&
+        request.resource.data.nicknameKey is string &&
+        request.resource.data.nicknameKey.size() > 0 &&
+        request.resource.data.nicknameKey.size() <= 40 &&
+        request.resource.data.isGuest is bool &&
+        (
+          resource == null ||
+          request.resource.data.createdAt == resource.data.createdAt
+        ) &&
+        request.resource.data.keys().hasOnly([
+          'uid',
+          'nickname',
+          'nicknameKey',
+          'isGuest',
+          'createdAt',
+          'updatedAt'
+        ]);
+    }
+
+    function validNicknameClaimWrite(nicknameKey) {
+      return isAuthed() &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.nicknameKey == nicknameKey &&
+        request.resource.data.nickname is string &&
+        request.resource.data.nickname.size() > 0 &&
+        request.resource.data.nickname.size() <= 40 &&
+        request.resource.data.keys().hasOnly([
+          'uid',
+          'nickname',
+          'nicknameKey',
+          'updatedAt'
+        ]);
+    }
+
+    function canAuthorEditThreadContentOnly() {
+      return isThreadAuthor() &&
+        request.resource.data.authorUid == resource.data.authorUid &&
+        request.resource.data.author == resource.data.author &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.replyCount == resource.data.replyCount &&
+        request.resource.data.title == resource.data.title &&
+        request.resource.data.body is string &&
+        request.resource.data.edited == true;
+    }
+
+    function canIncrementReplyCountOnly() {
+      return isAuthed() &&
+        request.resource.data.authorUid == resource.data.authorUid &&
+        request.resource.data.author == resource.data.author &&
+        request.resource.data.title == resource.data.title &&
+        request.resource.data.body == resource.data.body &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.edited == resource.data.edited &&
+        (
+          request.resource.data.replyCount == resource.data.replyCount + 1 ||
+          request.resource.data.replyCount == resource.data.replyCount - 1
+        );
+    }
+
+    function canAuthorEditReplyContentOnly(threadId) {
+      return isAuthed() &&
+        resource.data.authorUid == request.auth.uid &&
+        request.resource.data.threadId == threadId &&
+        request.resource.data.authorUid == resource.data.authorUid &&
+        request.resource.data.author == resource.data.author &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.body is string &&
+        request.resource.data.edited == true &&
+        request.resource.data.keys().hasOnly([
+          'threadId',
+          'body',
+          'author',
+          'authorUid',
+          'createdAt',
+          'edited'
+        ]);
+    }
+
+    // User profile: users can only read/write their own profile doc.
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if validUserProfileWrite(uid);
+      allow delete: if isOwner(uid);
+    }
+
+    // Nickname uniqueness lock docs keyed by normalized nickname.
+    match /nickname_claims/{nicknameKey} {
+      allow read: if isAuthed();
+      allow create, update: if validNicknameClaimWrite(nicknameKey) &&
+        (
+          !exists(/databases/$(database)/documents/nickname_claims/$(nicknameKey)) ||
+          resource.data.uid == request.auth.uid
+        );
+      allow delete: if isAuthed() && resource.data.uid == request.auth.uid;
+    }
+
+    match /threads/{threadId} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() &&
+        request.resource.data.authorUid == request.auth.uid &&
+        request.resource.data.author is string &&
+        request.resource.data.body is string &&
+        request.resource.data.createdAt is timestamp &&
+        request.resource.data.replyCount is int &&
+        request.resource.data.edited is bool &&
+        request.resource.data.keys().hasOnly([
+          'title',
+          'body',
+          'author',
+          'authorUid',
+          'createdAt',
+          'replyCount',
+          'edited'
+        ]);
+      allow update: if canAuthorEditThreadContentOnly() || canIncrementReplyCountOnly();
+      allow delete: if isThreadAuthor();
+
+      match /replies/{replyId} {
+        allow read: if isAuthed();
+        allow create: if isAuthed() &&
+          request.resource.data.authorUid == request.auth.uid &&
+          request.resource.data.threadId == threadId &&
+          request.resource.data.author is string &&
+          request.resource.data.body is string &&
+          request.resource.data.createdAt is timestamp &&
+          request.resource.data.edited is bool &&
+          request.resource.data.keys().hasOnly([
+            'threadId',
+            'body',
+            'author',
+            'authorUid',
+            'createdAt',
+            'edited'
+          ]);
+        allow update: if canAuthorEditReplyContentOnly(threadId);
+        allow delete: if isAuthed() && resource.data.authorUid == request.auth.uid;
+      }
+    }
+
+    // Admin + AI backend collections are server-only.
+    match /app_config/{docId} {
+      allow read, write: if false;
+    }
+
+    match /admin_auth/{docId} {
+      allow read, write: if false;
+    }
+
+    match /admin_audit_logs/{docId} {
+      allow read, write: if false;
+    }
+
+    match /ai_request_logs/{docId} {
+      allow read, write: if false;
+    }
+
+    match /ai_metrics_daily/{docId} {
+      allow read, write: if false;
+    }
+
+    // Default deny for anything not explicitly covered.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -5,8 +5,13 @@ import 'package:ai_chat/src/services/forum_repository.dart';
 
 class ForumScreen extends StatefulWidget {
   final String nickname;
+  final String currentUserId;
 
-  const ForumScreen({super.key, required this.nickname});
+  const ForumScreen({
+    super.key,
+    required this.nickname,
+    required this.currentUserId,
+  });
 
   @override
   State<ForumScreen> createState() => _ForumScreenState();
@@ -36,6 +41,7 @@ class _ForumScreenState extends State<ForumScreen> {
       await _repository.createThread(
         body: body,
         author: widget.nickname,
+        authorUid: widget.currentUserId,
       );
       _bodyController.clear();
     } catch (e) {
@@ -105,12 +111,13 @@ class _ForumScreenState extends State<ForumScreen> {
           threadId: thread.id,
           body: reply.trim(),
           author: widget.nickname,
+          authorUid: widget.currentUserId,
         );
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not post reply: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not post reply: $e')));
       }
     }
   }
@@ -147,9 +154,7 @@ class _ForumScreenState extends State<ForumScreen> {
               TextField(
                 controller: controller,
                 maxLines: 5,
-                decoration: const InputDecoration(
-                  hintText: 'Update your post',
-                ),
+                decoration: const InputDecoration(hintText: 'Update your post'),
               ),
               const SizedBox(height: 14),
               SizedBox(
@@ -173,9 +178,9 @@ class _ForumScreenState extends State<ForumScreen> {
         );
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not edit post: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not edit post: $e')));
       }
     }
   }
@@ -204,9 +209,9 @@ class _ForumScreenState extends State<ForumScreen> {
         await _repository.deleteThread(thread.id);
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not delete post: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not delete post: $e')));
       }
     }
   }
@@ -270,9 +275,9 @@ class _ForumScreenState extends State<ForumScreen> {
         );
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not edit reply: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not edit reply: $e')));
       }
     }
   }
@@ -298,15 +303,12 @@ class _ForumScreenState extends State<ForumScreen> {
     );
     if (confirm == true) {
       try {
-        await _repository.deleteReply(
-          threadId: thread.id,
-          replyId: reply.id,
-        );
+        await _repository.deleteReply(threadId: thread.id, replyId: reply.id);
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not delete reply: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not delete reply: $e')));
       }
     }
   }
@@ -511,7 +513,8 @@ class _ForumScreenState extends State<ForumScreen> {
                     final thread = threads[index];
                     return _ThreadCard(
                       thread: thread,
-                      currentUser: widget.nickname,
+                      currentUserId: widget.currentUserId,
+                      currentUserNickname: widget.nickname,
                       onReply: () => _promptReply(thread),
                       onEdit: () => _editThread(thread),
                       onDelete: () => _deleteThread(thread),
@@ -539,7 +542,8 @@ class _ForumScreenState extends State<ForumScreen> {
 
 class _ThreadCard extends StatelessWidget {
   final ForumThread thread;
-  final String currentUser;
+  final String currentUserId;
+  final String currentUserNickname;
   final ForumRepository repository;
   final VoidCallback onReply;
   final VoidCallback onEdit;
@@ -549,7 +553,8 @@ class _ThreadCard extends StatelessWidget {
 
   const _ThreadCard({
     required this.thread,
-    required this.currentUser,
+    required this.currentUserId,
+    required this.currentUserNickname,
     required this.repository,
     required this.onReply,
     required this.onEdit,
@@ -560,6 +565,10 @@ class _ThreadCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canEditThread = thread.authorUid.isNotEmpty
+        ? thread.authorUid == currentUserId
+        : thread.author == currentUserNickname;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -597,17 +606,11 @@ class _ThreadCard extends StatelessWidget {
               ),
               Row(
                 children: [
-                  if (thread.author == currentUser)
+                  if (canEditThread)
                     PopupMenuButton<String>(
                       itemBuilder: (context) => const [
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: Text('Edit'),
-                        ),
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Text('Delete'),
-                        ),
+                        PopupMenuItem(value: 'edit', child: Text('Edit')),
+                        PopupMenuItem(value: 'delete', child: Text('Delete')),
                       ],
                       onSelected: (value) {
                         if (value == 'edit') {
@@ -676,85 +679,82 @@ class _ThreadCard extends StatelessWidget {
               }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: replies
-                    .map(
-                      (reply) => Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                              Icons.reply,
-                              size: 14,
-                              color: AppColors.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                children: replies.map((reply) {
+                  final canEditReply = reply.authorUid.isNotEmpty
+                      ? reply.authorUid == currentUserId
+                      : reply.author == currentUserNickname;
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.reply, size: 14, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
                                 children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        reply.author,
-                                        style: TextStyle(
-                                          color: AppColors.textPrimary,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      if (reply.edited)
-                                        Text(
-                                          ' (edited)',
-                                          style: TextStyle(
-                                            color: AppColors.textTertiary,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      const Spacer(),
-                                      if (reply.author == currentUser)
-                                        PopupMenuButton<String>(
-                                          itemBuilder: (context) => const [
-                                            PopupMenuItem(
-                                              value: 'edit',
-                                              child: Text('Edit'),
-                                            ),
-                                            PopupMenuItem(
-                                              value: 'delete',
-                                              child: Text('Delete'),
-                                            ),
-                                          ],
-                                          onSelected: (value) {
-                                            if (value == 'edit') {
-                                              onEditReply(reply);
-                                            } else if (value == 'delete') {
-                                              onDeleteReply(reply);
-                                            }
-                                          },
-                                          icon: Icon(
-                                            Icons.more_vert,
-                                            size: 16,
-                                            color: AppColors.textTertiary,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
                                   Text(
-                                    reply.body,
+                                    reply.author,
                                     style: TextStyle(
                                       color: AppColors.textPrimary,
-                                      height: 1.4,
-                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
                                     ),
                                   ),
+                                  if (reply.edited)
+                                    Text(
+                                      ' (edited)',
+                                      style: TextStyle(
+                                        color: AppColors.textTertiary,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  const Spacer(),
+                                  if (canEditReply)
+                                    PopupMenuButton<String>(
+                                      itemBuilder: (context) => const [
+                                        PopupMenuItem(
+                                          value: 'edit',
+                                          child: Text('Edit'),
+                                        ),
+                                        PopupMenuItem(
+                                          value: 'delete',
+                                          child: Text('Delete'),
+                                        ),
+                                      ],
+                                      onSelected: (value) {
+                                        if (value == 'edit') {
+                                          onEditReply(reply);
+                                        } else if (value == 'delete') {
+                                          onDeleteReply(reply);
+                                        }
+                                      },
+                                      icon: Icon(
+                                        Icons.more_vert,
+                                        size: 16,
+                                        color: AppColors.textTertiary,
+                                      ),
+                                    ),
                                 ],
                               ),
-                            ),
-                          ],
+                              Text(
+                                reply.body,
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  height: 1.4,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    )
-                    .toList(),
+                      ],
+                    ),
+                  );
+                }).toList(),
               );
             },
           ),
@@ -797,9 +797,7 @@ class _Composer extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomInset),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: AppColors.divider, width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

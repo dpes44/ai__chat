@@ -1,11 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 import 'package:ai_chat/src/features/home/home_shell.dart';
-import 'package:ai_chat/src/services/forum_repository.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ai_chat/src/services/user_profile_repository.dart';
 
 class NicknameScreen extends StatefulWidget {
-  const NicknameScreen({super.key});
+  const NicknameScreen({super.key, this.onSaved});
+
+  final ValueChanged<String>? onSaved;
 
   @override
   State<NicknameScreen> createState() => _NicknameScreenState();
@@ -13,26 +15,29 @@ class NicknameScreen extends StatefulWidget {
 
 class _NicknameScreenState extends State<NicknameScreen> {
   final TextEditingController _controller = TextEditingController();
+  final UserProfileRepository _profileRepository = UserProfileRepository();
   bool _isValid = false;
   bool _isSubmitting = false;
   String? _error;
-  final ForumRepository _forumRepository = ForumRepository();
-  static const _prefKey = 'nickname';
 
   @override
   void initState() {
     super.initState();
-    _loadExisting();
+    _prefillIfExistingNickname();
   }
 
-  Future<void> _loadExisting() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getString(_prefKey);
-    if (saved != null && saved.trim().isNotEmpty && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => HomeShell(nickname: saved)),
-      );
+  Future<void> _prefillIfExistingNickname() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      final profile = await _profileRepository.fetchProfile(user.uid);
+      final nickname = profile?.nickname.trim() ?? '';
+      if (!mounted || nickname.isEmpty) return;
+      _controller.text = nickname;
+      setState(() => _isValid = true);
+    } catch (_) {
+      // Keep screen usable even if profile prefill fails.
     }
   }
 
@@ -49,6 +54,15 @@ class _NicknameScreenState extends State<NicknameScreen> {
   Future<void> _submit() async {
     final nickname = _controller.text.trim();
     if (nickname.isEmpty) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        _error = 'You are not logged in. Please authenticate first.';
+      });
+      return;
+    }
+
     FocusScope.of(context).unfocus();
     setState(() {
       _isSubmitting = true;
@@ -56,7 +70,12 @@ class _NicknameScreenState extends State<NicknameScreen> {
     });
 
     try {
-      final ok = await _forumRepository.reserveNickname(nickname);
+      final ok = await _profileRepository.claimNickname(
+        uid: user.uid,
+        nickname: nickname,
+        isGuest: user.isAnonymous,
+      );
+
       if (!ok) {
         setState(() {
           _error = 'That nickname is taken. Try another one.';
@@ -64,14 +83,34 @@ class _NicknameScreenState extends State<NicknameScreen> {
         });
         return;
       }
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefKey, nickname);
+
       if (!mounted) return;
+      if (widget.onSaved != null) {
+        widget.onSaved!(nickname);
+        return;
+      }
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => HomeShell(nickname: nickname)),
+        MaterialPageRoute(
+          builder: (_) => HomeShell(
+            nickname: nickname,
+            currentUserId: user.uid,
+            isGuest: user.isAnonymous,
+          ),
+        ),
       );
-    } catch (e) {
+    } on FirebaseException catch (e) {
+      setState(() {
+        if (e.code == 'permission-denied') {
+          _error =
+              'Nickname save is blocked by Firestore security rules. Deploy updated rules and try again.';
+        } else {
+          _error = e.message ?? 'Could not save nickname. Please try again.';
+        }
+        _isSubmitting = false;
+      });
+    } catch (_) {
       setState(() {
         _error = 'Could not save nickname. Please try again.';
         _isSubmitting = false;
@@ -101,7 +140,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'This helps personalize your experience. You can use any name you like.',
+              'This name is public in the forum. Avoid personal details.',
               style: TextStyle(
                 fontSize: 15,
                 color: AppColors.textSecondary,
@@ -113,6 +152,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
               controller: _controller,
               onChanged: _updateValidity,
               autofocus: true,
+              enabled: !_isSubmitting,
               decoration: const InputDecoration(
                 labelText: 'Nickname',
                 hintText: 'e.g., Sunbeam',
@@ -140,14 +180,17 @@ class _NicknameScreenState extends State<NicknameScreen> {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                     : const Text(
                         'Continue',
-                        style:
-                            TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
               ),
             ),

@@ -2,25 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:ai_chat/src/core/constants/app_strings.dart';
 import 'package:ai_chat/src/core/themes/app_theme.dart';
-import 'package:ai_chat/src/features/onboarding/language_selection_screen.dart';
+import 'package:ai_chat/src/features/auth/auth_gate.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const SerenityWhisperApp());
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(const ManKoSathiApp());
 }
 
-class SerenityWhisperApp extends StatefulWidget {
-  const SerenityWhisperApp({super.key});
+class ManKoSathiApp extends StatefulWidget {
+  const ManKoSathiApp({super.key});
 
   @override
-  State<SerenityWhisperApp> createState() => _SerenityWhisperAppState();
+  State<ManKoSathiApp> createState() => _ManKoSathiAppState();
 }
 
-class _SerenityWhisperAppState extends State<SerenityWhisperApp> {
+class _ManKoSathiAppState extends State<ManKoSathiApp> {
   AppLanguage _language = AppLanguage.english;
 
   void _setLanguage(AppLanguage language) {
@@ -39,7 +37,7 @@ class _SerenityWhisperAppState extends State<SerenityWhisperApp> {
         title: strings.appTitle,
         debugShowCheckedModeBanner: false,
         theme: appTheme,
-        home: LanguageSelectionScreen(onLanguageSelected: _setLanguage),
+        home: const AuthGate(),
       ),
     );
   }

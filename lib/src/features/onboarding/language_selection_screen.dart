@@ -6,10 +6,7 @@ import 'package:ai_chat/src/features/onboarding/onboarding_screen.dart';
 class LanguageSelectionScreen extends StatelessWidget {
   final ValueChanged<AppLanguage> onLanguageSelected;
 
-  const LanguageSelectionScreen({
-    super.key,
-    required this.onLanguageSelected,
-  });
+  const LanguageSelectionScreen({super.key, required this.onLanguageSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +31,7 @@ class LanguageSelectionScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 strings.languagePrompt,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 36),
               LanguageCard(

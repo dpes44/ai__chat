@@ -92,6 +92,13 @@ class _ChatScreenState extends State<ChatScreen> {
         })
         .catchError((error) {
           if (!mounted) return;
+          final detail = error
+              .toString()
+              .replaceFirst('Exception: ', '')
+              .trim();
+          final shortDetail = detail.length > 220
+              ? '${detail.substring(0, 220)}...'
+              : detail;
           setState(() {
             _messages.removeWhere(
               (m) => m.text == strings.aiTyping && !m.isUser,
@@ -106,7 +113,13 @@ class _ChatScreenState extends State<ChatScreen> {
             _isSending = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(strings.errorMessage)),
+            SnackBar(
+              content: Text(
+                shortDetail.isEmpty
+                    ? strings.errorMessage
+                    : '${strings.errorMessage} [$shortDetail]',
+              ),
+            ),
           );
           _scrollToBottom();
         });
@@ -164,8 +177,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       Flexible(
                         child: Container(
                           constraints: BoxConstraints(
-                            maxWidth:
-                                MediaQuery.of(context).size.width * 0.72,
+                            maxWidth: MediaQuery.of(context).size.width * 0.72,
                           ),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -332,9 +344,7 @@ class _TypingIndicatorState extends State<_TypingIndicator>
             builder: (context, child) {
               final delay = index * 0.2;
               final value = (_controller.value - delay).clamp(0.0, 1.0);
-              final bounce = (value < 0.5)
-                  ? (value * 2)
-                  : (2 - value * 2);
+              final bounce = (value < 0.5) ? (value * 2) : (2 - value * 2);
               return Container(
                 margin: EdgeInsets.only(right: index < 2 ? 6 : 0),
                 child: Transform.translate(
@@ -343,8 +353,9 @@ class _TypingIndicatorState extends State<_TypingIndicator>
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: AppColors.textTertiary
-                          .withValues(alpha: 0.4 + 0.6 * bounce),
+                      color: AppColors.textTertiary.withValues(
+                        alpha: 0.4 + 0.6 * bounce,
+                      ),
                       shape: BoxShape.circle,
                     ),
                   ),

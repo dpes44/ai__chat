@@ -1,45 +1,82 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
+# ------------------------------
+# OS / Editor
+# ------------------------------
 .DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# IntelliJ related
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+.idea/
+.vscode/
 *.iml
 *.ipr
 *.iws
-.idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# ------------------------------
+# Logs
+# ------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+firebase-debug*.log
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# ------------------------------
+# Secrets / Local env
+# ------------------------------
+.env
+.env.*
+!.env.example
+!*.env.example
+admin-web/.env.local
+admin-web/.env*.local
+functions/.env
+functions/.env.*
+
+# Service account / key material
+*service-account*.json
+*firebase-adminsdk*.json
+*.pem
+*.key
+*.p12
+
+# ------------------------------
+# Flutter / Dart
+# ------------------------------
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
-.pub-cache/
+.packages
 .pub/
+.pub-cache/
 /build/
 /coverage/
-
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
+**/doc/api/
+**/ios/Flutter/.last_build_id
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# ------------------------------
+# Node / Next / TypeScript build
+# ------------------------------
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+dist/
+functions/lib/
+*.tsbuildinfo
+
+# ------------------------------
+# Firebase local state
+# ------------------------------
+.firebaserc
+.firebase/
+
+# ------------------------------
+# Local tooling
+# ------------------------------
+.codex/

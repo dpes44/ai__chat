@@ -3,7 +3,8 @@ import 'package:ai_chat/src/models/forum_models.dart';
 
 class ForumRepository {
   final FirebaseFirestore _db;
-  ForumRepository({FirebaseFirestore? db}) : _db = db ?? FirebaseFirestore.instance;
+  ForumRepository({FirebaseFirestore? db})
+    : _db = db ?? FirebaseFirestore.instance;
 
   Stream<List<ForumThread>> threadsStream({int limit = 30}) {
     return _db
@@ -28,12 +29,14 @@ class ForumRepository {
   Future<void> createThread({
     required String body,
     required String author,
+    required String authorUid,
   }) async {
     final now = DateTime.now();
     await _db.collection('threads').add({
       'title': '',
       'body': body,
       'author': author,
+      'authorUid': authorUid,
       'createdAt': Timestamp.fromDate(now),
       'replyCount': 0,
       'edited': false,
@@ -59,6 +62,7 @@ class ForumRepository {
     required String threadId,
     required String body,
     required String author,
+    required String authorUid,
   }) async {
     final now = DateTime.now();
     final threadRef = _db.collection('threads').doc(threadId);
@@ -68,6 +72,7 @@ class ForumRepository {
         'threadId': threadId,
         'body': body,
         'author': author,
+        'authorUid': authorUid,
         'createdAt': Timestamp.fromDate(now),
         'edited': false,
       });
@@ -97,16 +102,6 @@ class ForumRepository {
     await _db.runTransaction((tx) async {
       tx.delete(replyRef);
       tx.update(threadRef, {'replyCount': FieldValue.increment(-1)});
-    });
-  }
-
-  Future<bool> reserveNickname(String nickname) async {
-    final doc = _db.collection('users').doc(nickname);
-    return _db.runTransaction((tx) async {
-      final snap = await tx.get(doc);
-      if (snap.exists) return false;
-      tx.set(doc, {'createdAt': Timestamp.now()});
-      return true;
     });
   }
 }

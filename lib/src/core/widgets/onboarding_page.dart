@@ -21,10 +21,7 @@ class OnboardingPage extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: Text(
-              data["image"]!,
-              style: const TextStyle(fontSize: 48),
-            ),
+            child: Text(data["image"]!, style: const TextStyle(fontSize: 48)),
           ),
           const SizedBox(height: 40),
           Text(

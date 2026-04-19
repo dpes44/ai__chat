@@ -5,6 +5,7 @@ class ForumThread {
   final String title;
   final String body;
   final String author;
+  final String authorUid;
   final DateTime createdAt;
   final int replyCount;
   final bool edited;
@@ -14,6 +15,7 @@ class ForumThread {
     required this.title,
     required this.body,
     required this.author,
+    required this.authorUid,
     required this.createdAt,
     required this.replyCount,
     required this.edited,
@@ -26,8 +28,8 @@ class ForumThread {
       title: (data['title'] ?? '').toString(),
       body: (data['body'] ?? '').toString(),
       author: (data['author'] ?? '').toString(),
-      createdAt:
-          (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      authorUid: (data['authorUid'] ?? '').toString(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       replyCount: (data['replyCount'] as int?) ?? 0,
       edited: (data['edited'] as bool?) ?? false,
     );
@@ -38,6 +40,7 @@ class ForumThread {
       'title': title,
       'body': body,
       'author': author,
+      'authorUid': authorUid,
       'createdAt': Timestamp.fromDate(createdAt),
       'replyCount': replyCount,
       'edited': edited,
@@ -50,6 +53,7 @@ class ForumReply {
   final String threadId;
   final String body;
   final String author;
+  final String authorUid;
   final DateTime createdAt;
   final bool edited;
 
@@ -58,6 +62,7 @@ class ForumReply {
     required this.threadId,
     required this.body,
     required this.author,
+    required this.authorUid,
     required this.createdAt,
     required this.edited,
   });
@@ -69,8 +74,8 @@ class ForumReply {
       threadId: (data['threadId'] ?? '').toString(),
       body: (data['body'] ?? '').toString(),
       author: (data['author'] ?? '').toString(),
-      createdAt:
-          (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      authorUid: (data['authorUid'] ?? '').toString(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       edited: (data['edited'] as bool?) ?? false,
     );
   }
@@ -80,6 +85,7 @@ class ForumReply {
       'threadId': threadId,
       'body': body,
       'author': author,
+      'authorUid': authorUid,
       'createdAt': Timestamp.fromDate(createdAt),
       'edited': edited,
     };

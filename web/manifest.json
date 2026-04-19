@@ -1,11 +1,11 @@
 {
-    "name": "ai_chat",
-    "short_name": "ai_chat",
+    "name": "Man Ko Sathi",
+    "short_name": "Man Ko Sathi",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Man Ko Sathi mental health support app.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

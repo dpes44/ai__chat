@@ -119,11 +119,7 @@ class _ContactTile extends StatelessWidget {
                 color: accent.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(
-                iconFromName(contact.icon),
-                color: accent,
-                size: 22,
-              ),
+              child: Icon(iconFromName(contact.icon), color: accent, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(

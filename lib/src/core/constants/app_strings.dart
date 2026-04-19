@@ -71,25 +71,27 @@ class AppStringSet {
 }
 
 const AppStringSet englishStrings = AppStringSet(
-  appTitle: 'Serenity Whisper',
-  welcomeTitle: 'Welcome to Serenity Whisper',
+  appTitle: 'Man Ko Sathi',
+  welcomeTitle: 'Welcome to Man Ko Sathi',
   welcomeSubtitle: 'Your safe, anonymous space to talk about your feelings.',
   alwaysHereTitle: 'Always Here for You',
   alwaysHereSubtitle: 'Chat anytime. No judgment. No records. Just support.',
   mentalHealthTitle: 'Mental Health Matters',
-  mentalHealthSubtitle: 'You\'re not alone. Small steps today make a big difference.',
+  mentalHealthSubtitle:
+      'You\'re not alone. Small steps today make a big difference.',
   privateSecureTitle: 'Private & Secure',
-  privateSecureSubtitle: 'No login. No history saved. Your privacy is our priority.',
+  privateSecureSubtitle:
+      'No login. No history saved. Your privacy is our priority.',
   readyBeginTitle: 'Ready to Begin?',
   readyBeginSubtitle: 'Take a deep breath. We\'re here when you need us.',
   startChatting: 'Start Chatting',
   next: 'Next',
   skip: 'Skip',
-  chatTitle: 'Chat with Serenity',
+  chatTitle: 'Chat with Man Ko Sathi',
   helloMessage: 'Hello, I\'m here to listen.',
   promptMessage: 'Tell me how you\'re feeling today, or what\'s on your mind.',
   typeMessage: 'Type your message...',
-  aiTyping: 'Serenity is thinking...',
+  aiTyping: 'Man Ko Sathi is thinking...',
   fallbackReply: 'Thank you for sharing. I\'m here with you.',
   errorMessage: 'Sorry, I had trouble replying. Please try again.',
   languagePrompt: 'Choose your language',
@@ -97,7 +99,8 @@ const AppStringSet englishStrings = AppStringSet(
   nepaliLabel: 'नेपाली',
   continueLabel: 'Continue',
   urgentHelpTitle: 'Need help right now?',
-  urgentHelpSubtitle: 'Call trusted support lines directly. If you or someone else is unsafe, use these numbers immediately.',
+  urgentHelpSubtitle:
+      'Call trusted support lines directly. If you or someone else is unsafe, use these numbers immediately.',
   callNow: 'Call now',
   emergencyServices: 'Emergency services',
   mentalHealthLine: 'Mental health line',
@@ -105,33 +108,37 @@ const AppStringSet englishStrings = AppStringSet(
 );
 
 const AppStringSet nepaliStrings = AppStringSet(
-  appTitle: 'Serenity Whisper',
-  welcomeTitle: 'Serenity Whisper मा स्वागत छ',
+  appTitle: 'Man Ko Sathi',
+  welcomeTitle: 'Man Ko Sathi मा स्वागत छ',
   welcomeSubtitle: 'भावनाहरू व्यक्त गर्न सुरक्षित र गोप्य स्थान।',
   alwaysHereTitle: 'सधैं तपाईंका लागि यहाँ',
-  alwaysHereSubtitle: 'जहिले पनि कुरा गर्न सक्नुहुन्छ। कुनै निर्णय छैन, कुनै रेकर्ड छैन।',
+  alwaysHereSubtitle:
+      'जहिले पनि कुरा गर्न सक्नुहुन्छ। कुनै निर्णय छैन, कुनै रेकर्ड छैन।',
   mentalHealthTitle: 'मानसिक स्वास्थ्य महत्त्वपूर्ण छ',
   mentalHealthSubtitle: 'तपाईं एक्लो हुनुहुन्न। साना कदमहरूले ठूलो फरक पार्छ।',
   privateSecureTitle: 'निजी र सुरक्षित',
-  privateSecureSubtitle: 'लगइन आवश्यक छैन। इतिहास सुरक्षित हुँदैन। तपाईंको गोपनीयता हाम्रो प्राथमिकता।',
+  privateSecureSubtitle:
+      'लगइन आवश्यक छैन। इतिहास सुरक्षित हुँदैन। तपाईंको गोपनीयता हाम्रो प्राथमिकता।',
   readyBeginTitle: 'सुरु गर्न तयार?',
   readyBeginSubtitle: 'गहिरो सास लिनुहोस्। हामी तपाईंका लागि छौं।',
   startChatting: 'च्याट सुरु गर्नुहोस्',
   next: 'अर्को',
   skip: 'छोड्नुहोस्',
-  chatTitle: 'Serenity सँग च्याट',
+  chatTitle: 'Man Ko Sathi सँग च्याट',
   helloMessage: 'नमस्ते, म तपाईंलाई सुन्न यहाँ छु।',
-  promptMessage: 'आज तपाईं कस्तो महसुस गर्नुहुन्छ वा के सोच्दै हुनुहुन्छ, बताउनुहोस्।',
+  promptMessage:
+      'आज तपाईं कस्तो महसुस गर्नुहुन्छ वा के सोच्दै हुनुहुन्छ, बताउनुहोस्।',
   typeMessage: 'यहाँ टाइप गर्नुहोस्...',
-  aiTyping: 'Serenity सोच्दैछ...',
+  aiTyping: 'Man Ko Sathi सोच्दैछ...',
   fallbackReply: 'सुनेर धन्यवाद। म तपाईं सँगै छु।',
   errorMessage: 'म जवाफ दिन असफल भएँ। कृपया पुन: प्रयास गर्नुहोस्।',
   languagePrompt: 'तपाईंको भाषा छान्नुहोस्',
   englishLabel: 'English',
   nepaliLabel: 'नेपाली',
-  continueLabel: '�?o�??�??�?? �??�??�?-�??�??�??�??�?<�??�??',
+  continueLabel: '�?o�??�??�?? �??�??�?-�??�??�??�??�?<�??�??',
   urgentHelpTitle: 'Need help right now?',
-  urgentHelpSubtitle: 'Call trusted support lines directly. If you or someone else is unsafe, use these numbers immediately.',
+  urgentHelpSubtitle:
+      'Call trusted support lines directly. If you or someone else is unsafe, use these numbers immediately.',
   callNow: 'Call now',
   emergencyServices: 'Emergency services',
   mentalHealthLine: 'Mental health line',
@@ -174,6 +181,3 @@ extension AppStringsX on BuildContext {
   void setAppLanguage(AppLanguage language) =>
       AppStringsScope.of(this).onLanguageChanged(language);
 }
-
-
-
