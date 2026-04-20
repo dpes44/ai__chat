@@ -16,6 +16,7 @@ export default function NavBar() {
               <Link href="/dashboard">Overview</Link>
               <Link href="/dashboard/router">Router</Link>
               <Link href="/dashboard/prompts">Prompts</Link>
+              <Link href="/dashboard/content">Content</Link>
               <Link href="/dashboard/keys">Keys</Link>
               <Link href="/dashboard/health">Health</Link>
               <Link href="/dashboard/audit">Audit</Link>

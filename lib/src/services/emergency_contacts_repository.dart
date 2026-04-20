@@ -1,26 +1,21 @@
-import 'dart:convert';
-
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
 import '../models/emergency_contact.dart';
+import 'runtime_content_service.dart';
 
 class EmergencyContactsRepository {
   EmergencyContactsRepository({
-    this.assetPath = 'assets/data/emergency_contacts.json',
-  });
+    RuntimeContentService? runtimeContentService,
+  }) : _runtimeContentService =
+           runtimeContentService ?? RuntimeContentService();
 
-  final String assetPath;
+  final RuntimeContentService _runtimeContentService;
   List<EmergencyContact>? _cache;
 
   Future<List<EmergencyContact>> loadContacts() async {
     if (_cache != null) return _cache!;
-
-    final raw = await rootBundle.loadString(assetPath);
-    final List<dynamic> jsonList = jsonDecode(raw) as List<dynamic>;
-    _cache = jsonList
-        .map((item) => EmergencyContact.fromJson(item as Map<String, dynamic>))
-        .toList();
+    final content = await _runtimeContentService.loadContent();
+    _cache = content?.emergencyContacts ?? const <EmergencyContact>[];
     return _cache!;
   }
 }

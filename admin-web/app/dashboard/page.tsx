@@ -24,6 +24,11 @@ export default async function DashboardPage() {
               <div><Link href="/dashboard/prompts">Open Prompts</Link></div>
             </div>
             <div className="metric-box">
+              <div className="label">Content</div>
+              <div className="value">Emergency/tools/subscriptions</div>
+              <div><Link href="/dashboard/content">Open Content</Link></div>
+            </div>
+            <div className="metric-box">
               <div className="label">Keys</div>
               <div className="value">Provider secrets</div>
               <div><Link href="/dashboard/keys">Open Keys</Link></div>

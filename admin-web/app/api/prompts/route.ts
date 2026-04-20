@@ -12,19 +12,6 @@ import { getAdminSession } from "@/lib/session";
 const updateSchema = z.object({
   csrfToken: z.string().min(1),
   systemPromptTemplate: z.string().min(1).max(20000),
-  promptContext: z.object({
-    emergencyNumbersText: z.string().max(1000),
-    suicideHelpline: z.string().max(120),
-    policeEmergency: z.string().max(120),
-    ambulanceNumber: z.string().max(120),
-    childHelpline: z.string().max(120),
-    womenGbvHelpline: z.string().max(120),
-    psychosocialHelpline: z.string().max(120),
-    connectToProfessionalAvailable: z.boolean(),
-    connectToProfessionalLabel: z.string().max(120),
-    emergencyButtonAvailable: z.boolean(),
-    assessmentToolsAvailable: z.string().max(1000),
-  }),
 });
 
 export async function GET() {
@@ -41,7 +28,6 @@ export async function GET() {
   return NextResponse.json({
     data: {
       systemPromptTemplate: data.systemPromptTemplate,
-      promptContext: data.promptContext,
     },
   });
 }
@@ -66,7 +52,6 @@ export async function POST(request: Request) {
   const before = beforeSnap.exists ? beforeSnap.data() : {};
   const nextConfig = {
     systemPromptTemplate: parsed.data.systemPromptTemplate,
-    promptContext: parsed.data.promptContext,
   };
 
   await db.doc(AI_ROUTING_DOC_PATH).set(
@@ -87,4 +72,3 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
-

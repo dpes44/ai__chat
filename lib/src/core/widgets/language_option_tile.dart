@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 
 class LanguageOptionTile extends StatelessWidget {
@@ -17,41 +18,41 @@ class LanguageOptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        width: 160,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primarySurface : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: selected ? AppColors.primaryDim : AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.divider,
-            width: selected ? 1.5 : 1,
+            color: selected ? AppColors.primary : AppColors.borderFaint,
+            width: selected ? 1.2 : 0.8,
           ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(flag, style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textDark,
-                ),
+            Text(flag, style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: selected ? AppColors.accent : AppColors.textPrimary,
               ),
             ),
+            const SizedBox(width: 8),
             AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 180),
               child: selected
-                  ? Icon(
+                  ? const Icon(
                       Icons.check_circle_rounded,
                       color: AppColors.primary,
-                      key: const ValueKey('check'),
+                      size: 16,
+                      key: ValueKey('check'),
                     )
                   : const SizedBox(key: ValueKey('empty'), width: 0, height: 0),
             ),

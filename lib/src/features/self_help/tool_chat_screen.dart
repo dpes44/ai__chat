@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 import 'package:ai_chat/src/core/constants/app_strings.dart';
 import 'package:ai_chat/src/models/tool_item.dart';
@@ -41,21 +42,13 @@ class _ToolChatScreenState extends State<ToolChatScreen> {
 
   void _enqueueNextQuestion() {
     if (_completed) return;
-    if (_questionIndex >= widget.tool.questions.length ||
-        widget.tool.questions.isEmpty) {
+    if (_questionIndex >= widget.tool.questions.length || widget.tool.questions.isEmpty) {
       final response = _pickResponse();
-      if (response != null) {
-        _messages.add(
-          _Message(text: response, isUser: false, isFeedback: true),
-        );
-      } else {
-        _messages.add(
-          _Message(
-            text: 'Thanks for checking this tool. You can revisit anytime.',
-            isUser: false,
-          ),
-        );
-      }
+      _messages.add(_Message(
+        text: response ?? 'Thanks for checking this tool. You can revisit anytime.',
+        isUser: false,
+        isFeedback: response != null,
+      ));
       _completed = true;
       setState(() {});
       _scrollToBottom();
@@ -64,13 +57,11 @@ class _ToolChatScreenState extends State<ToolChatScreen> {
     final q = widget.tool.questions[_questionIndex];
     final lang = context.appLanguage;
     setState(() {
-      _messages.add(
-        _Message(
-          text: lang == AppLanguage.nepali ? q.textNp : q.textEn,
-          isUser: false,
-          options: q.options,
-        ),
-      );
+      _messages.add(_Message(
+        text: lang == AppLanguage.nepali ? q.textNp : q.textEn,
+        isUser: false,
+        options: q.options,
+      ));
     });
     _scrollToBottom();
   }
@@ -85,9 +76,7 @@ class _ToolChatScreenState extends State<ToolChatScreen> {
     _scrollToBottom();
   }
 
-  void _skip() {
-    _answer('Skipped', score: 0);
-  }
+  void _skip() => _answer('Skipped', score: 0);
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -108,9 +97,7 @@ class _ToolChatScreenState extends State<ToolChatScreen> {
       }
     }
     final fallback = widget.tool.responses.last;
-    return context.appLanguage == AppLanguage.nepali
-        ? fallback.textNp
-        : fallback.textEn;
+    return context.appLanguage == AppLanguage.nepali ? fallback.textNp : fallback.textEn;
   }
 
   @override
@@ -121,112 +108,224 @@ class _ToolChatScreenState extends State<ToolChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top;
+    final lang = context.appLanguage;
+    final title = lang == AppLanguage.nepali ? widget.tool.nameNp : widget.tool.nameEn;
+
     return Scaffold(
-      appBar: AppBar(title: Text(widget.tool.nameEn)),
-      body: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-        itemCount: _messages.length,
-        itemBuilder: (context, index) {
-          final msg = _messages[index];
-
-          if (msg.isUser) {
-            return Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.72,
-                ),
-                decoration: const BoxDecoration(
-                  color: AppColors.userBubble,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(6),
-                  ),
-                ),
-                child: Text(
-                  msg.text,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            );
-          }
-
-          return Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              padding: const EdgeInsets.all(16),
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.85,
-              ),
-              decoration: const BoxDecoration(
-                color: AppColors.aiBubble,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                  bottomLeft: Radius.circular(6),
-                  bottomRight: Radius.circular(20),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    msg.text,
-                    style: TextStyle(
-                      color: msg.isFeedback
-                          ? AppColors.primary
-                          : AppColors.textPrimary,
-                      fontSize: 15,
-                      fontWeight: msg.isFeedback
-                          ? FontWeight.w600
-                          : FontWeight.w400,
-                      height: 1.45,
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          // ── Custom header ────────────────────────────────────────────────
+          Container(
+            color: AppColors.surface,
+            padding: EdgeInsets.fromLTRB(16, top + 14, 16, 14),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: AppColors.elevated,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.borderFaint, width: 0.8),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 15,
+                      color: AppColors.textSecondary,
                     ),
                   ),
-                  if (msg.options != null && msg.options!.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        ...msg.options!.map((opt) {
-                          final label =
-                              context.appLanguage == AppLanguage.nepali
-                              ? opt.labelNp
-                              : opt.labelEn;
-                          return ChoiceChip(
-                            label: Text(label),
-                            selected: false,
-                            onSelected: (_) => _answer(label, score: opt.score),
-                          );
-                        }),
-                        ActionChip(
-                          label: const Text('Skip'),
-                          onPressed: _skip,
-                          backgroundColor: AppColors.primarySurface,
-                          side: const BorderSide(color: AppColors.divider),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -0.3,
                         ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
+                      ),
+                      Text(
+                        widget.tool.summary,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(fontSize: 11, color: AppColors.textTertiary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          );
-        },
+          ),
+          Container(height: 0.5, color: AppColors.divider),
+
+          // ── Messages ─────────────────────────────────────────────────────
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final msg = _messages[index];
+
+                if (msg.isUser) {
+                  return Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
+                      decoration: const BoxDecoration(
+                        color: AppColors.userBubble,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(18),
+                          topRight: Radius.circular(18),
+                          bottomLeft: Radius.circular(18),
+                          bottomRight: Radius.circular(5),
+                        ),
+                      ),
+                      child: Text(
+                        msg.text,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: Colors.white,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 28,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColors.primary, AppColors.accent],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(9),
+                        ),
+                        child: const Icon(Icons.auto_awesome, size: 13, color: Colors.white),
+                      ),
+                      Flexible(
+                        child: Container(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.82,
+                          ),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.aiBubble,
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(18),
+                              topRight: Radius.circular(18),
+                              bottomLeft: Radius.circular(5),
+                              bottomRight: Radius.circular(18),
+                            ),
+                            border: Border.all(color: AppColors.borderFaint, width: 0.8),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                msg.text,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: msg.isFeedback ? AppColors.accent : AppColors.textPrimary,
+                                  fontWeight: msg.isFeedback ? FontWeight.w600 : FontWeight.w400,
+                                  height: 1.55,
+                                ),
+                              ),
+                              if (msg.options != null && msg.options!.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                Wrap(
+                                  spacing: 7,
+                                  runSpacing: 7,
+                                  children: [
+                                    ...msg.options!.map((opt) {
+                                      final label = context.appLanguage == AppLanguage.nepali
+                                          ? opt.labelNp
+                                          : opt.labelEn;
+                                      return GestureDetector(
+                                        onTap: () => _answer(label, score: opt.score),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 7,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.highlight,
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: AppColors.primary.withValues(alpha: 0.4),
+                                              width: 0.8,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            label,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              color: AppColors.accent,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                    GestureDetector(
+                                      onTap: _skip,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 7,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.elevated,
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: AppColors.borderFaint,
+                                            width: 0.8,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Skip',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.textTertiary,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

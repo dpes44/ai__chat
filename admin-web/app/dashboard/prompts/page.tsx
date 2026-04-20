@@ -4,40 +4,12 @@ import { useEffect, useState } from "react";
 
 import { fetchJson } from "@/lib/client-api";
 
-interface PromptContext {
-  emergencyNumbersText: string;
-  suicideHelpline: string;
-  policeEmergency: string;
-  ambulanceNumber: string;
-  childHelpline: string;
-  womenGbvHelpline: string;
-  psychosocialHelpline: string;
-  connectToProfessionalAvailable: boolean;
-  connectToProfessionalLabel: string;
-  emergencyButtonAvailable: boolean;
-  assessmentToolsAvailable: string;
-}
-
 interface PromptSettings {
   systemPromptTemplate: string;
-  promptContext: PromptContext;
 }
 
 const DEFAULT_PROMPTS: PromptSettings = {
   systemPromptTemplate: "",
-  promptContext: {
-    emergencyNumbersText: "Emergency services: 911 | Mental health line: 988 | Medical advice: 112",
-    suicideHelpline: "988",
-    policeEmergency: "911",
-    ambulanceNumber: "112",
-    childHelpline: "none",
-    womenGbvHelpline: "none",
-    psychosocialHelpline: "none",
-    connectToProfessionalAvailable: false,
-    connectToProfessionalLabel: "none",
-    emergencyButtonAvailable: true,
-    assessmentToolsAvailable: "General Health Check-In, Depression Check-In",
-  },
 };
 
 export default function PromptsPage() {
@@ -74,14 +46,13 @@ export default function PromptsPage() {
         }
 
         setState({
-          systemPromptTemplate: data.systemPromptTemplate ?? DEFAULT_PROMPTS.systemPromptTemplate,
-          promptContext: {
-            ...DEFAULT_PROMPTS.promptContext,
-            ...(data.promptContext ?? {}),
-          },
+          systemPromptTemplate:
+            data.systemPromptTemplate ?? DEFAULT_PROMPTS.systemPromptTemplate,
         });
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not load prompt settings.");
+        setError(
+          err instanceof Error ? err.message : "Could not load prompt settings.",
+        );
       } finally {
         setLoading(false);
       }
@@ -90,23 +61,11 @@ export default function PromptsPage() {
     void load();
   }, []);
 
-  const updatePromptContext = <K extends keyof PromptContext>(
-    key: K,
-    value: PromptContext[K],
-  ) => {
-    setState((prev) => ({
-      ...prev,
-      promptContext: {
-        ...prev.promptContext,
-        [key]: value,
-      },
-    }));
-  };
-
   const onSave = async () => {
     setSaving(true);
     setError("");
     setNotice("");
+
     try {
       const res = await fetchJson<{ error?: string }>(
         "/api/prompts",
@@ -122,6 +81,7 @@ export default function PromptsPage() {
         setError(res.data.error ?? "Could not save prompt settings.");
         return;
       }
+
       setNotice("Prompt settings saved.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save prompt settings.");
@@ -131,7 +91,11 @@ export default function PromptsPage() {
   };
 
   if (loading) {
-    return <div className="desktop-window"><div className="window-body">Loading prompt settings...</div></div>;
+    return (
+      <div className="desktop-window">
+        <div className="window-body">Loading prompt settings...</div>
+      </div>
+    );
   }
 
   return (
@@ -139,108 +103,21 @@ export default function PromptsPage() {
       <div className="window-title">Prompt Settings</div>
       <div className="window-body">
         <div className="hint">
-          Use placeholders like <code>{"{{SELECTED_LANGUAGE}}"}</code>, <code>{"{{USER_REGION_OR_UNKNOWN}}"}</code>. Country is fixed to Nepal.
+          Configure the AI system prompt policy here. App content records (emergency numbers, tools, therapist subscriptions) are managed in Content.
         </div>
 
         <div style={{ marginTop: 10 }}>
           <label>System Prompt Template</label>
           <textarea
-            rows={14}
+            rows={18}
             value={state.systemPromptTemplate}
-            onChange={(e) => setState((prev) => ({ ...prev, systemPromptTemplate: e.target.value }))}
+            onChange={(e) =>
+              setState((prev) => ({
+                ...prev,
+                systemPromptTemplate: e.target.value,
+              }))
+            }
           />
-        </div>
-
-        <div className="form-grid form-grid-2" style={{ marginTop: 12 }}>
-          <div className="full-col">
-            <label>Emergency Numbers Text</label>
-            <textarea
-              rows={2}
-              value={state.promptContext.emergencyNumbersText}
-              onChange={(e) => updatePromptContext("emergencyNumbersText", e.target.value)}
-            />
-          </div>
-          <div>
-            <label>Suicide Helpline</label>
-            <input
-              value={state.promptContext.suicideHelpline}
-              onChange={(e) => updatePromptContext("suicideHelpline", e.target.value)}
-            />
-          </div>
-          <div>
-            <label>Police Emergency</label>
-            <input
-              value={state.promptContext.policeEmergency}
-              onChange={(e) => updatePromptContext("policeEmergency", e.target.value)}
-            />
-          </div>
-          <div>
-            <label>Ambulance Number</label>
-            <input
-              value={state.promptContext.ambulanceNumber}
-              onChange={(e) => updatePromptContext("ambulanceNumber", e.target.value)}
-            />
-          </div>
-          <div>
-            <label>Child Helpline</label>
-            <input
-              value={state.promptContext.childHelpline}
-              onChange={(e) => updatePromptContext("childHelpline", e.target.value)}
-            />
-          </div>
-          <div>
-            <label>Women/GBV Helpline</label>
-            <input
-              value={state.promptContext.womenGbvHelpline}
-              onChange={(e) => updatePromptContext("womenGbvHelpline", e.target.value)}
-            />
-          </div>
-          <div>
-            <label>Psychosocial Helpline</label>
-            <input
-              value={state.promptContext.psychosocialHelpline}
-              onChange={(e) => updatePromptContext("psychosocialHelpline", e.target.value)}
-            />
-          </div>
-          <div>
-            <label>Connect to Professional Available</label>
-            <select
-              value={state.promptContext.connectToProfessionalAvailable ? "true" : "false"}
-              onChange={(e) =>
-                updatePromptContext("connectToProfessionalAvailable", e.target.value === "true")
-              }
-            >
-              <option value="true">true</option>
-              <option value="false">false</option>
-            </select>
-          </div>
-          <div>
-            <label>Connect Label</label>
-            <input
-              value={state.promptContext.connectToProfessionalLabel}
-              onChange={(e) => updatePromptContext("connectToProfessionalLabel", e.target.value)}
-            />
-          </div>
-          <div>
-            <label>Emergency Button Available</label>
-            <select
-              value={state.promptContext.emergencyButtonAvailable ? "true" : "false"}
-              onChange={(e) =>
-                updatePromptContext("emergencyButtonAvailable", e.target.value === "true")
-              }
-            >
-              <option value="true">true</option>
-              <option value="false">false</option>
-            </select>
-          </div>
-          <div className="full-col">
-            <label>Assessment Tools Available</label>
-            <textarea
-              rows={2}
-              value={state.promptContext.assessmentToolsAvailable}
-              onChange={(e) => updatePromptContext("assessmentToolsAvailable", e.target.value)}
-            />
-          </div>
         </div>
 
         {error ? <p className="error">{error}</p> : null}
@@ -259,4 +136,3 @@ export default function PromptsPage() {
     </div>
   );
 }
-

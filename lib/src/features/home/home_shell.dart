@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 import 'package:ai_chat/src/features/chat/chat_screen.dart';
-import 'package:ai_chat/src/features/emergency/emergency_contacts_screen.dart';
 import 'package:ai_chat/src/features/forum/forum_screen.dart';
+import 'package:ai_chat/src/features/more/more_screen.dart';
 import 'package:ai_chat/src/features/self_help/self_help_screen.dart';
 import 'package:ai_chat/src/features/therapist/therapist_screen.dart';
-import 'package:ai_chat/src/features/settings/settings_screen.dart';
-import 'package:ai_chat/src/features/legal/privacy_policy_screen.dart';
-import 'package:ai_chat/src/features/legal/terms_screen.dart';
-import 'package:ai_chat/src/services/auth_service.dart';
 
 class HomeShell extends StatefulWidget {
   final String nickname;
@@ -27,179 +24,139 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  int _selectedIndex = 0;
-  final AuthService _authService = AuthService();
+  int _index = 0;
 
-  Future<void> _logout() async {
-    await _authService.signOut();
-  }
+  static const _navItems = [
+    _NavItem(
+      icon: Icons.chat_bubble_outline_rounded,
+      selectedIcon: Icons.chat_bubble_rounded,
+      label: 'Chat',
+    ),
+    _NavItem(
+      icon: Icons.explore_outlined,
+      selectedIcon: Icons.explore_rounded,
+      label: 'Tools',
+    ),
+    _NavItem(
+      icon: Icons.person_outline_rounded,
+      selectedIcon: Icons.person_rounded,
+      label: 'Therapist',
+    ),
+    _NavItem(
+      icon: Icons.people_outline_rounded,
+      selectedIcon: Icons.people_rounded,
+      label: 'Forum',
+    ),
+    _NavItem(
+      icon: Icons.apps_outlined,
+      selectedIcon: Icons.apps_rounded,
+      label: 'More',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final nickname = widget.nickname.trim().isNotEmpty
-        ? widget.nickname.trim()
-        : 'You';
-    final initial = nickname.isNotEmpty
-        ? nickname.characters.first.toUpperCase()
-        : 'Y';
-
-    final destinations = [
-      const _Destination(
-        icon: Icons.chat_bubble_outline_rounded,
-        selectedIcon: Icons.chat_bubble_rounded,
-        label: 'Chat',
-      ),
-      const _Destination(
-        icon: Icons.spa_outlined,
-        selectedIcon: Icons.spa_rounded,
-        label: 'Self help',
-      ),
-      const _Destination(
-        icon: Icons.favorite_border_rounded,
-        selectedIcon: Icons.favorite_rounded,
-        label: 'Therapist',
-      ),
-      const _Destination(
-        icon: Icons.forum_outlined,
-        selectedIcon: Icons.forum_rounded,
-        label: 'Forum',
-      ),
-      const _Destination(
-        icon: Icons.health_and_safety_outlined,
-        selectedIcon: Icons.health_and_safety_rounded,
-        label: 'Emergency',
-      ),
-    ];
+    final nickname = widget.nickname.trim().isNotEmpty ? widget.nickname.trim() : 'You';
 
     final pages = [
-      const ChatScreen(),
-      SelfHelpScreen(),
-      TherapistScreen(),
-      ForumScreen(nickname: nickname, currentUserId: widget.currentUserId),
-      EmergencyContactsScreen(),
+      ChatScreen(
+        nickname: nickname,
+        isGuest: widget.isGuest,
+      ),
+      const SelfHelpScreen(),
+      const TherapistScreen(),
+      ForumScreen(
+        nickname: nickname,
+        currentUserId: widget.currentUserId,
+      ),
+      MoreScreen(
+        nickname: nickname,
+        isGuest: widget.isGuest,
+      ),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Hey, $nickname',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        actions: [
-          PopupMenuButton<_ProfileMenu>(
-            position: PopupMenuPosition.under,
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: _ProfileMenu.settings,
-                child: const Text('Settings'),
-              ),
-              PopupMenuItem(
-                value: _ProfileMenu.terms,
-                child: const Text('Terms & Conditions'),
-              ),
-              PopupMenuItem(
-                value: _ProfileMenu.privacy,
-                child: const Text('Privacy Policy'),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: _ProfileMenu.version,
-                enabled: false,
-                child: Text(
-                  'Version 1.0.0',
-                  style: TextStyle(color: AppColors.textTertiary),
-                ),
-              ),
-              PopupMenuItem(
-                value: _ProfileMenu.logout,
-                child: Text(widget.isGuest ? 'Logout guest session' : 'Logout'),
-              ),
-            ],
-            onSelected: (value) {
-              switch (value) {
-                case _ProfileMenu.settings:
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                  );
-                  break;
-                case _ProfileMenu.terms:
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const TermsScreen()),
-                  );
-                  break;
-                case _ProfileMenu.privacy:
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const PrivacyPolicyScreen(),
-                    ),
-                  );
-                  break;
-                case _ProfileMenu.logout:
-                  _logout();
-                  break;
-                case _ProfileMenu.version:
-                  break;
-              }
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: CircleAvatar(
-                backgroundColor: AppColors.primarySurface,
-                foregroundColor: AppColors.primary,
-                child: Text(initial),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: IndexedStack(index: _selectedIndex, children: pages),
-        ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
-        ),
-        child: NavigationBar(
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: (index) =>
-              setState(() => _selectedIndex = index),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          indicatorColor: AppColors.primarySurface,
-          height: 64,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-          destinations: destinations
-              .map(
-                (d) => NavigationDestination(
-                  icon: Icon(d.icon, color: AppColors.textTertiary),
-                  selectedIcon: Icon(d.selectedIcon, color: AppColors.primary),
-                  label: d.label,
-                ),
-              )
-              .toList(),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: IndexedStack(index: _index, children: pages),
+        bottomNavigationBar: _BottomNav(
+          selectedIndex: _index,
+          items: _navItems,
+          onTap: (i) => setState(() => _index = i),
         ),
       ),
     );
   }
 }
 
-enum _ProfileMenu { settings, terms, privacy, logout, version }
+// ── Custom bottom nav ─────────────────────────────────────────────────────────
 
-class _Destination {
+class _BottomNav extends StatelessWidget {
+  final int selectedIndex;
+  final List<_NavItem> items;
+  final ValueChanged<int> onTap;
+
+  const _BottomNav({
+    required this.selectedIndex,
+    required this.items,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.of(context).padding.bottom;
+    return Container(
+      color: AppColors.surface,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(height: 0.5, color: AppColors.divider),
+          Padding(
+            padding: EdgeInsets.fromLTRB(28, 10, 28, 10 + bottom),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(items.length, (i) {
+                final selected = i == selectedIndex;
+                final item = items[i];
+                return GestureDetector(
+                  onTap: () => onTap(i),
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: selected ? 18 : 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected ? AppColors.primaryDim : Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      selected ? item.selectedIcon : item.icon,
+                      size: 22,
+                      color: selected ? AppColors.primary : AppColors.textTertiary,
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+
+class _NavItem {
   final IconData icon;
   final IconData selectedIcon;
   final String label;
 
-  const _Destination({
+  const _NavItem({
     required this.icon,
     required this.selectedIcon,
     required this.label,

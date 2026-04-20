@@ -18,6 +18,8 @@ export interface AiRoutingConfig {
   enabled: boolean;
   systemPromptTemplate: string;
   promptContext: PromptContextConfig;
+  tools: ToolConfig[];
+  therapistSubscriptions: TherapistSubscriptionConfig[];
 }
 
 export interface PromptContextConfig {
@@ -32,6 +34,47 @@ export interface PromptContextConfig {
   connectToProfessionalLabel: string;
   emergencyButtonAvailable: boolean;
   assessmentToolsAvailable: string;
+}
+
+export interface ToolOptionConfig {
+  labelEn: string;
+  labelNp: string;
+  score: number;
+}
+
+export interface ToolQuestionConfig {
+  textEn: string;
+  textNp: string;
+  options: ToolOptionConfig[];
+}
+
+export interface ToolResponseConfig {
+  min: number;
+  max: number;
+  textEn: string;
+  textNp: string;
+}
+
+export interface ToolConfig {
+  id: string;
+  nameEn: string;
+  nameNp: string;
+  summary: string;
+  descriptionEn: string;
+  descriptionNp: string;
+  questions: ToolQuestionConfig[];
+  responses: ToolResponseConfig[];
+}
+
+export interface TherapistSubscriptionConfig {
+  name: string;
+  sessions: number;
+  price: string;
+  period: string;
+  blurb: string;
+  tag: string;
+  featured: boolean;
+  ctaLabel: string;
 }
 
 export interface GenerateReplyRequest {
@@ -65,6 +108,8 @@ export const DEFAULT_AI_ROUTING_CONFIG: AiRoutingConfig = {
     emergencyButtonAvailable: true,
     assessmentToolsAvailable: "General Health Check-In, Depression Check-In",
   },
+  tools: [],
+  therapistSubscriptions: [],
 };
 
 const MODEL_PRICING_PER_1K_TOKENS_USD: Record<
@@ -490,11 +535,21 @@ export function normalizeRoutingConfig(
     ...DEFAULT_AI_ROUTING_CONFIG.promptContext,
     ...((input?.promptContext ?? {}) as Partial<PromptContextConfig>),
   };
+  const tools: ToolConfig[] = Array.isArray(input?.tools)
+    ? (input.tools as ToolConfig[])
+    : DEFAULT_AI_ROUTING_CONFIG.tools;
+  const therapistSubscriptions: TherapistSubscriptionConfig[] = Array.isArray(
+    input?.therapistSubscriptions,
+  )
+    ? (input.therapistSubscriptions as TherapistSubscriptionConfig[])
+    : DEFAULT_AI_ROUTING_CONFIG.therapistSubscriptions;
 
   return {
     ...DEFAULT_AI_ROUTING_CONFIG,
     ...(input ?? {}),
     promptContext,
+    tools,
+    therapistSubscriptions,
   };
 }
 

@@ -26,13 +26,27 @@ class ToolItem {
         : const [];
     final dynamic responsesField =
         json['responses'] ?? json['feedback']; // support either key
+    final nameEn =
+        (json['name_en'] ??
+                json['nameEn'] ??
+                json['title_en'] ??
+                json['titleEn'] ??
+                '')
+            .toString();
+    final nameNp =
+        (json['name_np'] ??
+                json['nameNp'] ??
+                json['title_np'] ??
+                json['titleNp'] ??
+                '')
+            .toString();
     List<ToolResponse> responseList = [];
     if (responsesField is List) {
       responseList = responsesField
           .map((r) => ToolResponse.fromJson(r as Map<String, dynamic>))
           .toList();
     } else if (responsesField is Map) {
-      responseList = (responsesField as Map).entries.map<ToolResponse>((entry) {
+      responseList = responsesField.entries.map<ToolResponse>((entry) {
         final key = entry.key.toString();
         final parts = key.split('-');
         final double min = parts.isNotEmpty
@@ -53,11 +67,13 @@ class ToolItem {
 
     return ToolItem(
       id: (json['id'] ?? '').toString(),
-      nameEn: (json['name_en'] ?? '').toString(),
-      nameNp: (json['name_np'] ?? '').toString(),
-      summary: (json['summary'] ?? '').toString(),
-      descriptionEn: (json['description_en'] ?? '').toString(),
-      descriptionNp: (json['description_np'] ?? '').toString(),
+      nameEn: nameEn,
+      nameNp: nameNp.isNotEmpty ? nameNp : nameEn,
+      summary: (json['summary'] ?? json['summaryEn'] ?? '').toString(),
+      descriptionEn: (json['description_en'] ?? json['descriptionEn'] ?? '')
+          .toString(),
+      descriptionNp: (json['description_np'] ?? json['descriptionNp'] ?? '')
+          .toString(),
       responses: responseList,
       questions: questionsJson
           .map((q) => ToolQuestion.fromJson(q as Map<String, dynamic>))
@@ -79,9 +95,11 @@ class ToolQuestion {
 
   factory ToolQuestion.fromJson(Map<String, dynamic> json) {
     final opts = (json['options'] as List<dynamic>?) ?? [];
+    final textEn = (json['text_en'] ?? json['textEn'] ?? '').toString();
+    final textNp = (json['text_np'] ?? json['textNp'] ?? '').toString();
     return ToolQuestion(
-      textEn: (json['text_en'] ?? '').toString(),
-      textNp: (json['text_np'] ?? '').toString(),
+      textEn: textEn,
+      textNp: textNp.isNotEmpty ? textNp : textEn,
       options: opts
           .map((o) => ToolOption.fromJson(o as Map<String, dynamic>))
           .toList(),
@@ -101,9 +119,11 @@ class ToolOption {
   });
 
   factory ToolOption.fromJson(Map<String, dynamic> json) {
+    final labelEn = (json['label_en'] ?? json['labelEn'] ?? '').toString();
+    final labelNp = (json['label_np'] ?? json['labelNp'] ?? '').toString();
     return ToolOption(
-      labelEn: (json['label_en'] ?? '').toString(),
-      labelNp: (json['label_np'] ?? '').toString(),
+      labelEn: labelEn,
+      labelNp: labelNp.isNotEmpty ? labelNp : labelEn,
       score: (json['score'] as num?)?.toDouble() ?? 0,
     );
   }
@@ -123,11 +143,13 @@ class ToolResponse {
   });
 
   factory ToolResponse.fromJson(Map<String, dynamic> json) {
+    final textEn = (json['text_en'] ?? json['textEn'] ?? '').toString();
+    final textNp = (json['text_np'] ?? json['textNp'] ?? '').toString();
     return ToolResponse(
       min: (json['min'] as num?)?.toDouble() ?? 0,
       max: (json['max'] as num?)?.toDouble() ?? 0,
-      textEn: (json['text_en'] ?? '').toString(),
-      textNp: (json['text_np'] ?? '').toString(),
+      textEn: textEn,
+      textNp: textNp.isNotEmpty ? textNp : textEn,
     );
   }
 }

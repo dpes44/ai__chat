@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:www.purrweb.com)",
+      "WebFetch(domain:raw.studio)",
+      "WebFetch(domain:gapsystudio.com)",
+      "WebFetch(domain:multitaskai.com)",
+      "WebFetch(domain:www.startdesigns.com)",
+      "WebFetch(domain:www.designrush.com)",
+      "WebFetch(domain:usabilitygeek.com)",
+      "WebFetch(domain:goldenowl.asia)",
+      "Bash(echo \"exit: $?\")"
+    ]
+  }
+}

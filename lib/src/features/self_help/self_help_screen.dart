@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 import 'package:ai_chat/src/core/constants/app_strings.dart';
 import 'package:ai_chat/src/models/tool_item.dart';
@@ -13,106 +14,193 @@ class SelfHelpScreen extends StatefulWidget {
 }
 
 class _SelfHelpScreenState extends State<SelfHelpScreen> {
-  final ToolsRepository _repository = ToolsRepository();
-  late final Future<List<ToolItem>> _toolsFuture = _repository.loadTools();
+  final ToolsRepository _repo = ToolsRepository();
+  late final Future<List<ToolItem>> _future = _repo.loadTools();
 
   @override
   Widget build(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top;
     final lang = context.appLanguage;
+
     return FutureBuilder<List<ToolItem>>(
-      future: _toolsFuture,
+      future: _future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Could not load tools right now.',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-          );
-        }
         final tools = snapshot.data ?? [];
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          itemCount: tools.length,
-          itemBuilder: (context, index) {
-            final tool = tools[index];
-            final title = lang == AppLanguage.nepali
-                ? tool.nameNp
-                : tool.nameEn;
-            final icon = _iconForIndex(index);
-            return GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => ToolChatScreen(tool: tool)),
-                );
-              },
+        final loading = snapshot.connectionState == ConnectionState.waiting;
+
+        return CustomScrollView(
+          slivers: [
+            // ── Header ──────────────────────────────────────────────────
+            SliverToBoxAdapter(
               child: Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.divider, width: 0.5),
-                ),
-                child: Row(
+                color: AppColors.surface,
+                padding: EdgeInsets.fromLTRB(20, top + 14, 20, 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.primarySurface,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(icon, color: AppColors.primary, size: 22),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          if (tool.summary.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              tool.summary,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textSecondary,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ],
+                    Text(
+                      'Tools',
+                      style: GoogleFonts.inter(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -0.6,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      color: AppColors.textTertiary,
-                      size: 22,
+                    const SizedBox(height: 2),
+                    Text(
+                      'Your mental health toolkit',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.textTertiary,
+                      ),
                     ),
                   ],
                 ),
               ),
-            );
-          },
+            ),
+            SliverToBoxAdapter(
+              child: Container(height: 0.5, color: AppColors.divider),
+            ),
+
+            if (loading)
+              const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (snapshot.hasError)
+              SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    'Could not load tools.',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              )
+            else ...[
+              // ── 2-column grid ────────────────────────────────────────
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 1.0,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final tool = tools[index];
+                      final title = lang == AppLanguage.nepali
+                          ? tool.nameNp
+                          : tool.nameEn;
+                      return _ToolGridCard(
+                        title: title,
+                        summary: tool.summary,
+                        icon: _iconForIndex(index),
+                        color: _colorForIndex(index),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ToolChatScreen(tool: tool),
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: tools.length,
+                  ),
+                ),
+              ),
+            ],
+          ],
         );
       },
     );
   }
+}
+
+class _ToolGridCard extends StatelessWidget {
+  final String title;
+  final String summary;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ToolGridCard({
+    required this.title,
+    required this.summary,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.borderFaint, width: 0.8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const Spacer(),
+            Text(
+              title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+                height: 1.35,
+                letterSpacing: -0.1,
+              ),
+            ),
+            if (summary.isNotEmpty) ...[
+              const SizedBox(height: 3),
+              Text(
+                summary,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: AppColors.textTertiary,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Each tool gets a distinct accent color — not the same purple for everything
+Color _colorForIndex(int index) {
+  const colors = [
+    Color(0xFF7C6BFF), // violet
+    Color(0xFF4ECDC4), // teal
+    Color(0xFFFF8C69), // coral
+    Color(0xFF64B5F6), // sky blue
+    Color(0xFFFFD166), // yellow
+    Color(0xFFB8AEFF), // lavender
+  ];
+  return colors[index % colors.length];
 }
 
 IconData _iconForIndex(int index) {
@@ -121,8 +209,8 @@ IconData _iconForIndex(int index) {
     Icons.spa_rounded,
     Icons.self_improvement_rounded,
     Icons.nights_stay_rounded,
-    Icons.health_and_safety_rounded,
-    Icons.favorite_rounded,
+    Icons.favorite_outline_rounded,
+    Icons.psychology_outlined,
   ];
   return icons[index % icons.length];
 }

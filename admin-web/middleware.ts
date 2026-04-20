@@ -9,6 +9,7 @@ export function middleware(request: NextRequest) {
   const protectedApiRoute =
     pathname.startsWith("/api/router") ||
     pathname.startsWith("/api/prompts") ||
+    pathname.startsWith("/api/content") ||
     pathname.startsWith("/api/keys");
 
   if (!protectedDashboardRoute && !protectedApiRoute) {
@@ -31,5 +32,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/router", "/api/prompts", "/api/keys/:path*"],
+  matcher: ["/dashboard/:path*", "/api/router", "/api/prompts", "/api/content/:path*", "/api/keys/:path*"],
 };
