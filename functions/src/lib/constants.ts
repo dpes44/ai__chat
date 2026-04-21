@@ -3,6 +3,8 @@ import { AiRoutingConfig } from "../types";
 export const AI_ROUTING_DOC_PATH = "app_config/ai_routing";
 export const AI_REQUEST_LOGS_COLLECTION = "ai_request_logs";
 export const AI_METRICS_DAILY_COLLECTION = "ai_metrics_daily";
+export const MOOD_METRICS_DAILY_COLLECTION = "mood_metrics_daily";
+export const MOOD_LOGS_SUBCOLLECTION = "mood_logs";
 export const ADMIN_AUDIT_LOGS_COLLECTION = "admin_audit_logs";
 
 export const REQUEST_LOG_TTL_DAYS = 30;

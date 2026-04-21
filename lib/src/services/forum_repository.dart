@@ -12,7 +12,12 @@ class ForumRepository {
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()
-        .map((snap) => snap.docs.map(ForumThread.fromDoc).toList());
+        .map(
+          (snap) => snap.docs
+              .map(ForumThread.fromDoc)
+              .where((row) => !row.isHidden)
+              .toList(),
+        );
   }
 
   Stream<List<ForumReply>> repliesStream(String threadId, {int limit = 100}) {
@@ -23,7 +28,12 @@ class ForumRepository {
         .orderBy('createdAt')
         .limit(limit)
         .snapshots()
-        .map((snap) => snap.docs.map(ForumReply.fromDoc).toList());
+        .map(
+          (snap) => snap.docs
+              .map(ForumReply.fromDoc)
+              .where((row) => !row.isHidden)
+              .toList(),
+        );
   }
 
   Future<void> createThread({
@@ -40,6 +50,8 @@ class ForumRepository {
       'createdAt': Timestamp.fromDate(now),
       'replyCount': 0,
       'edited': false,
+      'isFlagged': false,
+      'isHidden': false,
     });
   }
 
@@ -75,6 +87,8 @@ class ForumRepository {
         'authorUid': authorUid,
         'createdAt': Timestamp.fromDate(now),
         'edited': false,
+        'isFlagged': false,
+        'isHidden': false,
       });
       tx.update(threadRef, {'replyCount': FieldValue.increment(1)});
     });

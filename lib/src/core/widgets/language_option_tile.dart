@@ -41,7 +41,7 @@ class LanguageOptionTile extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: selected ? AppColors.accent : AppColors.textPrimary,
+                color: selected ? AppColors.primary : AppColors.textPrimary,
               ),
             ),
             const SizedBox(width: 8),

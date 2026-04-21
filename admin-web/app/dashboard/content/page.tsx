@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 import { fetchJson } from "@/lib/client-api";
+import ContentMenu from "@/components/ContentMenu";
 
 interface PromptContext {
   suicideHelpline: string;
@@ -54,10 +56,18 @@ interface TherapistSubscriptionConfig {
   ctaLabel: string;
 }
 
+interface LegalContentConfig {
+  termsTitle: string;
+  termsBody: string;
+  privacyTitle: string;
+  privacyBody: string;
+}
+
 interface PromptSettings {
   promptContext: PromptContext;
   tools: ToolConfig[];
   therapistSubscriptions: TherapistSubscriptionConfig[];
+  legalContent: LegalContentConfig;
 }
 
 const DEFAULT_PROMPTS: PromptSettings = {
@@ -71,6 +81,12 @@ const DEFAULT_PROMPTS: PromptSettings = {
   },
   tools: [],
   therapistSubscriptions: [],
+  legalContent: {
+    termsTitle: "Terms & Conditions",
+    termsBody: "",
+    privacyTitle: "Privacy Policy",
+    privacyBody: "",
+  },
 };
 
 function emptyToolOption(): ToolOptionConfig {
@@ -135,13 +151,24 @@ function cloneTool(tool: ToolConfig): ToolConfig {
   };
 }
 
-type ContentSectionKey = "emergency" | "tools" | "therapist";
+type ContentSectionKey = "emergency" | "tools" | "therapist" | "legal";
+type LegalBodyField = "termsBody" | "privacyBody";
 
 export default function ContentPage() {
+  const searchParams = useSearchParams();
+  const sectionFromQuery = searchParams.get("section")?.trim().toLowerCase();
+  const normalizedSection: ContentSectionKey =
+    sectionFromQuery === "tools"
+      ? "tools"
+      : sectionFromQuery === "therapist"
+        ? "therapist"
+        : sectionFromQuery === "legal"
+          ? "legal"
+        : "emergency";
   const [csrfToken, setCsrfToken] = useState("");
   const [state, setState] = useState<PromptSettings>(DEFAULT_PROMPTS);
   const [activeSection, setActiveSection] =
-    useState<ContentSectionKey>("emergency");
+    useState<ContentSectionKey>(normalizedSection);
 
   const [toolDraft, setToolDraft] = useState<ToolConfig>(emptyTool());
   const [editingToolIndex, setEditingToolIndex] = useState<number | null>(null);
@@ -156,6 +183,8 @@ export default function ContentPage() {
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const termsBodyRef = useRef<HTMLTextAreaElement | null>(null);
+  const privacyBodyRef = useRef<HTMLTextAreaElement | null>(null);
 
   const persistState = async (nextState: PromptSettings, successMessage: string) => {
     if (!csrfToken) {
@@ -195,6 +224,10 @@ export default function ContentPage() {
   };
 
   useEffect(() => {
+    setActiveSection(normalizedSection);
+  }, [normalizedSection]);
+
+  useEffect(() => {
     const load = async () => {
       setLoading(true);
       setError("");
@@ -228,6 +261,10 @@ export default function ContentPage() {
           therapistSubscriptions: Array.isArray(data.therapistSubscriptions)
             ? data.therapistSubscriptions
             : DEFAULT_PROMPTS.therapistSubscriptions,
+          legalContent: {
+            ...DEFAULT_PROMPTS.legalContent,
+            ...(data.legalContent ?? {}),
+          },
         });
       } catch (err) {
         setError(
@@ -252,6 +289,78 @@ export default function ContentPage() {
         [key]: value,
       },
     }));
+  };
+
+  const updateLegalContent = <K extends keyof LegalContentConfig>(
+    key: K,
+    value: LegalContentConfig[K],
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      legalContent: {
+        ...prev.legalContent,
+        [key]: value,
+      },
+    }));
+  };
+
+  const legalRefFor = (field: LegalBodyField) =>
+    field === "termsBody" ? termsBodyRef : privacyBodyRef;
+
+  const applyInlineMarkdown = (
+    field: LegalBodyField,
+    prefix: string,
+    suffix: string,
+    placeholder: string,
+  ) => {
+    const textarea = legalRefFor(field).current;
+    if (!textarea) {
+      return;
+    }
+
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? 0;
+    const current = state.legalContent[field];
+    const selected = current.slice(start, end);
+    const content = selected || placeholder;
+    const insertion = `${prefix}${content}${suffix}`;
+    const nextValue = `${current.slice(0, start)}${insertion}${current.slice(end)}`;
+
+    updateLegalContent(field, nextValue);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const selectionStart = start + prefix.length;
+      const selectionEnd = selectionStart + content.length;
+      textarea.setSelectionRange(selectionStart, selectionEnd);
+    });
+  };
+
+  const applyLinePrefix = (field: LegalBodyField, prefix: string) => {
+    const textarea = legalRefFor(field).current;
+    if (!textarea) {
+      return;
+    }
+
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? 0;
+    const current = state.legalContent[field];
+    const blockStart = current.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
+    const blockEndCandidate = current.indexOf("\n", end);
+    const blockEnd = blockEndCandidate === -1 ? current.length : blockEndCandidate;
+    const selectedBlock = current.slice(blockStart, blockEnd);
+    const prefixedBlock = selectedBlock
+      .split("\n")
+      .map((line) => (line.trim() ? `${prefix}${line}` : line))
+      .join("\n");
+    const nextValue = `${current.slice(0, blockStart)}${prefixedBlock}${current.slice(blockEnd)}`;
+
+    updateLegalContent(field, nextValue);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(blockStart, blockStart + prefixedBlock.length);
+    });
   };
 
   const startAddTool = () => {
@@ -493,38 +602,7 @@ export default function ContentPage() {
 
   return (
     <div className="content-layout">
-      <aside className="desktop-window content-side-nav">
-        <div className="window-title">Content Menu</div>
-        <div className="window-body">
-          <button
-            type="button"
-            className={`content-nav-link ${
-              activeSection === "emergency" ? "content-nav-link-active" : ""
-            }`}
-            onClick={() => setActiveSection("emergency")}
-          >
-            Emergency Numbers
-          </button>
-          <button
-            type="button"
-            className={`content-nav-link ${
-              activeSection === "tools" ? "content-nav-link-active" : ""
-            }`}
-            onClick={() => setActiveSection("tools")}
-          >
-            Tools
-          </button>
-          <button
-            type="button"
-            className={`content-nav-link ${
-              activeSection === "therapist" ? "content-nav-link-active" : ""
-            }`}
-            onClick={() => setActiveSection("therapist")}
-          >
-            Therapist Subscriptions
-          </button>
-        </div>
-      </aside>
+      <ContentMenu active={activeSection} onSelectContentSection={setActiveSection} />
 
       <div className="desktop-window content-main-window">
         <div className="window-title">Content Settings</div>
@@ -706,6 +784,112 @@ export default function ContentPage() {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="section-legal"
+            className={`content-section ${
+              activeSection === "legal" ? "" : "content-section-hidden"
+            }`}
+          >
+            <h3>Terms & Privacy</h3>
+            <div className="desktop-window">
+              <div className="window-title">Legal Content</div>
+              <div className="window-body">
+                <p className="hint">
+                  These texts are shown in the mobile app under More &gt; Legal.
+                </p>
+                <p className="hint">
+                  Rich text is supported via Markdown.
+                </p>
+                <div className="form-grid" style={{ marginTop: 8 }}>
+                  <div>
+                    <label>Terms Title</label>
+                    <input
+                      value={state.legalContent.termsTitle}
+                      onChange={(event) =>
+                        setState((prev) => ({
+                          ...prev,
+                          legalContent: {
+                            ...prev.legalContent,
+                            termsTitle: event.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label>Terms Body</label>
+                    <div className="actions-row" style={{ marginTop: 4, marginBottom: 6 }}>
+                      <button type="button" onClick={() => applyInlineMarkdown("termsBody", "**", "**", "bold text")}>
+                        Bold
+                      </button>
+                      <button type="button" onClick={() => applyInlineMarkdown("termsBody", "*", "*", "italic text")}>
+                        Italic
+                      </button>
+                      <button type="button" onClick={() => applyLinePrefix("termsBody", "## ")}>
+                        Heading
+                      </button>
+                      <button type="button" onClick={() => applyLinePrefix("termsBody", "- ")}>
+                        Bullet List
+                      </button>
+                      <button type="button" onClick={() => applyLinePrefix("termsBody", "1. ")}>
+                        Numbered List
+                      </button>
+                    </div>
+                    <textarea
+                      ref={termsBodyRef}
+                      rows={10}
+                      value={state.legalContent.termsBody}
+                      onChange={(event) => updateLegalContent("termsBody", event.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label>Privacy Title</label>
+                    <input
+                      value={state.legalContent.privacyTitle}
+                      onChange={(event) =>
+                        setState((prev) => ({
+                          ...prev,
+                          legalContent: {
+                            ...prev.legalContent,
+                            privacyTitle: event.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label>Privacy Body</label>
+                    <div className="actions-row" style={{ marginTop: 4, marginBottom: 6 }}>
+                      <button type="button" onClick={() => applyInlineMarkdown("privacyBody", "**", "**", "bold text")}>
+                        Bold
+                      </button>
+                      <button type="button" onClick={() => applyInlineMarkdown("privacyBody", "*", "*", "italic text")}>
+                        Italic
+                      </button>
+                      <button type="button" onClick={() => applyLinePrefix("privacyBody", "## ")}>
+                        Heading
+                      </button>
+                      <button type="button" onClick={() => applyLinePrefix("privacyBody", "- ")}>
+                        Bullet List
+                      </button>
+                      <button type="button" onClick={() => applyLinePrefix("privacyBody", "1. ")}>
+                        Numbered List
+                      </button>
+                    </div>
+                    <textarea
+                      ref={privacyBodyRef}
+                      rows={10}
+                      value={state.legalContent.privacyBody}
+                      onChange={(event) =>
+                        updateLegalContent("privacyBody", event.target.value)
+                      }
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </section>

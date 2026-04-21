@@ -50,6 +50,19 @@ const therapistSubscriptionSchema = z.object({
   ctaLabel: z.string().max(80).default("Choose plan"),
 });
 
+const legalContentSchema = z.object({
+  termsTitle: z.string().max(160).default("Terms & Conditions"),
+  termsBody: z.string().max(50000).default(""),
+  privacyTitle: z.string().max(160).default("Privacy Policy"),
+  privacyBody: z.string().max(50000).default(""),
+});
+const legalContentDefaults = {
+  termsTitle: "Terms & Conditions",
+  termsBody: "",
+  privacyTitle: "Privacy Policy",
+  privacyBody: "",
+};
+
 const updateSchema = z.object({
   csrfToken: z.string().min(1),
   promptContext: z.object({
@@ -62,6 +75,7 @@ const updateSchema = z.object({
   }),
   tools: z.array(toolSchema).max(100),
   therapistSubscriptions: z.array(therapistSubscriptionSchema).max(40),
+  legalContent: legalContentSchema.default(legalContentDefaults),
 });
 
 export async function GET() {
@@ -80,6 +94,7 @@ export async function GET() {
       promptContext: data.promptContext,
       tools: data.tools,
       therapistSubscriptions: data.therapistSubscriptions,
+      legalContent: data.legalContent,
     },
   });
 }
@@ -114,6 +129,7 @@ export async function POST(request: Request) {
     promptContext: parsed.data.promptContext,
     tools: parsed.data.tools,
     therapistSubscriptions: parsed.data.therapistSubscriptions,
+    legalContent: parsed.data.legalContent,
   };
 
   await db.doc(AI_ROUTING_DOC_PATH).set(

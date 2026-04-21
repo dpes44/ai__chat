@@ -59,6 +59,11 @@ service cloud.firestore {
         request.resource.data.createdAt == resource.data.createdAt &&
         request.resource.data.replyCount == resource.data.replyCount &&
         request.resource.data.title == resource.data.title &&
+        request.resource.data.isHidden == resource.data.isHidden &&
+        request.resource.data.isFlagged == resource.data.isFlagged &&
+        request.resource.data.moderationNote == resource.data.moderationNote &&
+        request.resource.data.moderatedAt == resource.data.moderatedAt &&
+        request.resource.data.moderatedBy == resource.data.moderatedBy &&
         request.resource.data.body is string &&
         request.resource.data.edited == true;
     }
@@ -71,6 +76,11 @@ service cloud.firestore {
         request.resource.data.body == resource.data.body &&
         request.resource.data.createdAt == resource.data.createdAt &&
         request.resource.data.edited == resource.data.edited &&
+        request.resource.data.isHidden == resource.data.isHidden &&
+        request.resource.data.isFlagged == resource.data.isFlagged &&
+        request.resource.data.moderationNote == resource.data.moderationNote &&
+        request.resource.data.moderatedAt == resource.data.moderatedAt &&
+        request.resource.data.moderatedBy == resource.data.moderatedBy &&
         (
           request.resource.data.replyCount == resource.data.replyCount + 1 ||
           request.resource.data.replyCount == resource.data.replyCount - 1
@@ -84,6 +94,11 @@ service cloud.firestore {
         request.resource.data.authorUid == resource.data.authorUid &&
         request.resource.data.author == resource.data.author &&
         request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.isHidden == resource.data.isHidden &&
+        request.resource.data.isFlagged == resource.data.isFlagged &&
+        request.resource.data.moderationNote == resource.data.moderationNote &&
+        request.resource.data.moderatedAt == resource.data.moderatedAt &&
+        request.resource.data.moderatedBy == resource.data.moderatedBy &&
         request.resource.data.body is string &&
         request.resource.data.edited == true &&
         request.resource.data.keys().hasOnly([
@@ -92,7 +107,106 @@ service cloud.firestore {
           'author',
           'authorUid',
           'createdAt',
-          'edited'
+          'edited',
+          'isHidden',
+          'isFlagged',
+          'moderationNote',
+          'moderatedAt',
+          'moderatedBy'
+        ]);
+    }
+
+    function isValidMoodId(moodId) {
+      return moodId in ['great', 'good', 'okay', 'bad', 'terrible'];
+    }
+
+    function isValidAppointmentStatus(status) {
+      return status in ['requested', 'confirmed', 'completed', 'cancelled'];
+    }
+
+    function validMoodLogWrite(uid, dateKey) {
+      return isOwner(uid) &&
+        dateKey.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+        request.resource.data.uid == uid &&
+        request.resource.data.dateKey == dateKey &&
+        request.resource.data.date is timestamp &&
+        request.resource.data.moodId is string &&
+        isValidMoodId(request.resource.data.moodId) &&
+        request.resource.data.moodScore is int &&
+        request.resource.data.moodScore >= 1 &&
+        request.resource.data.moodScore <= 5 &&
+        request.resource.data.note is string &&
+        request.resource.data.note.size() <= 500 &&
+        request.resource.data.noteLength is int &&
+        request.resource.data.noteLength >= 0 &&
+        request.resource.data.noteLength <= 500 &&
+        request.resource.data.source is string &&
+        request.resource.data.source.size() > 0 &&
+        request.resource.data.source.size() <= 40 &&
+        request.resource.data.createdAt is timestamp &&
+        request.resource.data.updatedAt is timestamp &&
+        request.resource.data.keys().hasOnly([
+          'uid',
+          'dateKey',
+          'date',
+          'moodId',
+          'moodScore',
+          'note',
+          'noteLength',
+          'source',
+          'createdAt',
+          'updatedAt'
+        ]);
+    }
+
+    function validAppointmentCreate() {
+      return isAuthed() &&
+        request.resource.data.userUid == request.auth.uid &&
+        request.resource.data.userNickname is string &&
+        request.resource.data.userNickname.size() <= 80 &&
+        request.resource.data.doctorId is string &&
+        request.resource.data.doctorId.size() > 0 &&
+        request.resource.data.doctorId.size() <= 160 &&
+        request.resource.data.doctorName is string &&
+        request.resource.data.doctorName.size() > 0 &&
+        request.resource.data.doctorName.size() <= 120 &&
+        request.resource.data.doctorSpecialization is string &&
+        request.resource.data.doctorSpecialization.size() > 0 &&
+        request.resource.data.doctorSpecialization.size() <= 120 &&
+        request.resource.data.preferredDate is timestamp &&
+        request.resource.data.issueSummary is string &&
+        request.resource.data.issueSummary.size() > 0 &&
+        request.resource.data.issueSummary.size() <= 500 &&
+        request.resource.data.preferredLocation is string &&
+        request.resource.data.preferredLocation.size() <= 160 &&
+        request.resource.data.onlineMeetingLink is string &&
+        request.resource.data.onlineMeetingLink.size() <= 300 &&
+        request.resource.data.note is string &&
+        request.resource.data.note.size() <= 500 &&
+        request.resource.data.status == 'requested' &&
+        request.resource.data.adminNote is string &&
+        request.resource.data.adminNote.size() == 0 &&
+        request.resource.data.requestSource is string &&
+        request.resource.data.requestSource.size() > 0 &&
+        request.resource.data.requestSource.size() <= 40 &&
+        request.resource.data.createdAt is timestamp &&
+        request.resource.data.updatedAt is timestamp &&
+        request.resource.data.keys().hasOnly([
+          'userUid',
+          'userNickname',
+          'doctorId',
+          'doctorName',
+          'doctorSpecialization',
+          'preferredDate',
+          'issueSummary',
+          'preferredLocation',
+          'onlineMeetingLink',
+          'note',
+          'status',
+          'adminNote',
+          'requestSource',
+          'createdAt',
+          'updatedAt'
         ]);
     }
 
@@ -115,7 +229,7 @@ service cloud.firestore {
     }
 
     match /threads/{threadId} {
-      allow read: if isAuthed();
+      allow read: if isAuthed() && resource.data.isHidden != true;
       allow create: if isAuthed() &&
         request.resource.data.authorUid == request.auth.uid &&
         request.resource.data.author is string &&
@@ -123,6 +237,19 @@ service cloud.firestore {
         request.resource.data.createdAt is timestamp &&
         request.resource.data.replyCount is int &&
         request.resource.data.edited is bool &&
+        (
+          !request.resource.data.keys().hasAny(['isHidden']) ||
+          request.resource.data.isHidden == false
+        ) &&
+        (
+          !request.resource.data.keys().hasAny(['isFlagged']) ||
+          request.resource.data.isFlagged == false
+        ) &&
+        !request.resource.data.keys().hasAny([
+          'moderationNote',
+          'moderatedAt',
+          'moderatedBy'
+        ]) &&
         request.resource.data.keys().hasOnly([
           'title',
           'body',
@@ -130,13 +257,15 @@ service cloud.firestore {
           'authorUid',
           'createdAt',
           'replyCount',
-          'edited'
+          'edited',
+          'isHidden',
+          'isFlagged'
         ]);
       allow update: if canAuthorEditThreadContentOnly() || canIncrementReplyCountOnly();
       allow delete: if isThreadAuthor();
 
       match /replies/{replyId} {
-        allow read: if isAuthed();
+        allow read: if isAuthed() && resource.data.isHidden != true;
         allow create: if isAuthed() &&
           request.resource.data.authorUid == request.auth.uid &&
           request.resource.data.threadId == threadId &&
@@ -144,17 +273,52 @@ service cloud.firestore {
           request.resource.data.body is string &&
           request.resource.data.createdAt is timestamp &&
           request.resource.data.edited is bool &&
+          (
+            !request.resource.data.keys().hasAny(['isHidden']) ||
+            request.resource.data.isHidden == false
+          ) &&
+          (
+            !request.resource.data.keys().hasAny(['isFlagged']) ||
+            request.resource.data.isFlagged == false
+          ) &&
+          !request.resource.data.keys().hasAny([
+            'moderationNote',
+            'moderatedAt',
+            'moderatedBy'
+          ]) &&
           request.resource.data.keys().hasOnly([
             'threadId',
             'body',
             'author',
             'authorUid',
             'createdAt',
-            'edited'
+            'edited',
+            'isHidden',
+            'isFlagged'
           ]);
         allow update: if canAuthorEditReplyContentOnly(threadId);
         allow delete: if isAuthed() && resource.data.authorUid == request.auth.uid;
       }
+    }
+
+    // Per-user mood tracking (one log per day key).
+    match /user_moods/{uid}/mood_logs/{dateKey} {
+      allow read: if isOwner(uid);
+      allow create, update: if validMoodLogWrite(uid, dateKey);
+      allow delete: if isOwner(uid);
+    }
+
+    // Therapist directory is managed by admin backend.
+    match /doctors/{doctorId} {
+      allow read: if isAuthed() && resource.data.isActive == true;
+      allow write: if false;
+    }
+
+    // Appointment requests are created/read by the owner user only.
+    match /appointments/{appointmentId} {
+      allow read: if isAuthed() && resource.data.userUid == request.auth.uid;
+      allow create: if validAppointmentCreate();
+      allow update, delete: if false;
     }
 
     // Admin + AI backend collections are server-only.
@@ -175,6 +339,10 @@ service cloud.firestore {
     }
 
     match /ai_metrics_daily/{docId} {
+      allow read, write: if false;
+    }
+
+    match /mood_metrics_daily/{docId} {
       allow read, write: if false;
     }
 

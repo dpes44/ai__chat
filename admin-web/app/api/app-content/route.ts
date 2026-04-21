@@ -84,6 +84,7 @@ export async function GET(request: Request) {
       promptContext: routing.promptContext,
       tools: routing.tools,
       therapistSubscriptions: routing.therapistSubscriptions,
+      legalContent: routing.legalContent,
     },
   });
 }

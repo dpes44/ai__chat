@@ -14,12 +14,9 @@ export default function NavBar() {
           {isAuthed ? (
             <>
               <Link href="/dashboard">Overview</Link>
-              <Link href="/dashboard/router">Router</Link>
-              <Link href="/dashboard/prompts">Prompts</Link>
               <Link href="/dashboard/content">Content</Link>
-              <Link href="/dashboard/keys">Keys</Link>
-              <Link href="/dashboard/health">Health</Link>
-              <Link href="/dashboard/audit">Audit</Link>
+              <Link href="/dashboard/router">AI Setup</Link>
+              <Link href="/dashboard/health">Insights</Link>
               <Link href="/api/auth/logout">Logout</Link>
             </>
           ) : (

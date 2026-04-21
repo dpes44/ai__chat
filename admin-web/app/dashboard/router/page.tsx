@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { fetchJson } from "@/lib/client-api";
+import AiSetupMenu from "@/components/AiSetupMenu";
 
 type Provider = "openai" | "anthropic";
 
@@ -114,84 +115,98 @@ export default function RouterPage() {
   };
 
   if (loading) {
-    return <div className="desktop-window"><div className="window-body">Loading router settings...</div></div>;
+    return (
+      <div className="content-layout">
+        <AiSetupMenu active="router" />
+        <div className="content-main-window">
+          <div className="desktop-window">
+            <div className="window-body">Loading router settings...</div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="desktop-window">
-      <div className="window-title">Model Router</div>
-      <div className="window-body">
-        <div className="hint">Global Active Model with one-step fallback. Prompt settings are now in a separate page.</div>
+    <div className="content-layout">
+      <AiSetupMenu active="router" />
+      <div className="content-main-window">
+        <div className="desktop-window">
+          <div className="window-title">Model Router</div>
+          <div className="window-body">
+            <div className="hint">Global Active Model with one-step fallback. Prompt settings are now in a separate page.</div>
 
-        <div className="form-grid form-grid-2" style={{ marginTop: 10 }}>
-          <div>
-            <label>Active Provider</label>
-            <select
-              value={state.activeProvider}
-              onChange={(e) => update("activeProvider", e.target.value as Provider)}
-            >
-              <option value="openai">openai</option>
-              <option value="anthropic">anthropic</option>
-            </select>
-          </div>
-          <div>
-            <label>Active Model</label>
-            <input value={state.activeModel} onChange={(e) => update("activeModel", e.target.value)} />
-          </div>
-          <div>
-            <label>Fallback Provider</label>
-            <select
-              value={state.fallbackProvider}
-              onChange={(e) => update("fallbackProvider", e.target.value as Provider)}
-            >
-              <option value="openai">openai</option>
-              <option value="anthropic">anthropic</option>
-            </select>
-          </div>
-          <div>
-            <label>Fallback Model</label>
-            <input value={state.fallbackModel} onChange={(e) => update("fallbackModel", e.target.value)} />
-          </div>
-          <div>
-            <label>Temperature</label>
-            <input
-              type="number"
-              step="0.1"
-              value={state.temperature}
-              onChange={(e) => update("temperature", Number(e.target.value))}
-            />
-          </div>
-          <div>
-            <label>Max Tokens</label>
-            <input
-              type="number"
-              value={state.maxTokens}
-              onChange={(e) => update("maxTokens", Number(e.target.value))}
-            />
-          </div>
-          <div>
-            <label>Enabled</label>
-            <select
-              value={state.enabled ? "true" : "false"}
-              onChange={(e) => update("enabled", e.target.value === "true")}
-            >
-              <option value="true">true</option>
-              <option value="false">false</option>
-            </select>
-          </div>
-        </div>
+            <div className="form-grid form-grid-2" style={{ marginTop: 10 }}>
+              <div>
+                <label>Active Provider</label>
+                <select
+                  value={state.activeProvider}
+                  onChange={(e) => update("activeProvider", e.target.value as Provider)}
+                >
+                  <option value="openai">openai</option>
+                  <option value="anthropic">anthropic</option>
+                </select>
+              </div>
+              <div>
+                <label>Active Model</label>
+                <input value={state.activeModel} onChange={(e) => update("activeModel", e.target.value)} />
+              </div>
+              <div>
+                <label>Fallback Provider</label>
+                <select
+                  value={state.fallbackProvider}
+                  onChange={(e) => update("fallbackProvider", e.target.value as Provider)}
+                >
+                  <option value="openai">openai</option>
+                  <option value="anthropic">anthropic</option>
+                </select>
+              </div>
+              <div>
+                <label>Fallback Model</label>
+                <input value={state.fallbackModel} onChange={(e) => update("fallbackModel", e.target.value)} />
+              </div>
+              <div>
+                <label>Temperature</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={state.temperature}
+                  onChange={(e) => update("temperature", Number(e.target.value))}
+                />
+              </div>
+              <div>
+                <label>Max Tokens</label>
+                <input
+                  type="number"
+                  value={state.maxTokens}
+                  onChange={(e) => update("maxTokens", Number(e.target.value))}
+                />
+              </div>
+              <div>
+                <label>Enabled</label>
+                <select
+                  value={state.enabled ? "true" : "false"}
+                  onChange={(e) => update("enabled", e.target.value === "true")}
+                >
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
+            </div>
 
-        {error ? <p className="error">{error}</p> : null}
-        {notice ? <p className="hint">{notice}</p> : null}
+            {error ? <p className="error">{error}</p> : null}
+            {notice ? <p className="hint">{notice}</p> : null}
 
-        <div className="actions-row">
-          <button
-            onClick={onSave}
-            disabled={saving || !csrfToken}
-            className="btn-primary"
-          >
-            {saving ? "Saving..." : "Save Router"}
-          </button>
+            <div className="actions-row">
+              <button
+                onClick={onSave}
+                disabled={saving || !csrfToken}
+                className="btn-primary"
+              >
+                {saving ? "Saving..." : "Save Router"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

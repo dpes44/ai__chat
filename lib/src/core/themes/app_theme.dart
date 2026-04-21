@@ -3,11 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 
-// Apply Inter on top of the dark base text theme so default colors are correct.
 TextTheme _buildTextTheme() {
-  final base = ThemeData.dark().textTheme;
+  final base = ThemeData.light().textTheme;
   return GoogleFonts.interTextTheme(base).copyWith(
-    // Display / hero text
     displayLarge: GoogleFonts.inter(
       fontSize: 32,
       fontWeight: FontWeight.w700,
@@ -15,7 +13,6 @@ TextTheme _buildTextTheme() {
       letterSpacing: -1.0,
       height: 1.1,
     ),
-    // Screen titles
     headlineLarge: GoogleFonts.inter(
       fontSize: 24,
       fontWeight: FontWeight.w700,
@@ -30,7 +27,6 @@ TextTheme _buildTextTheme() {
       letterSpacing: -0.5,
       height: 1.2,
     ),
-    // Card titles
     titleLarge: GoogleFonts.inter(
       fontSize: 15,
       fontWeight: FontWeight.w600,
@@ -47,7 +43,6 @@ TextTheme _buildTextTheme() {
       fontWeight: FontWeight.w500,
       color: AppColors.textSecondary,
     ),
-    // Body
     bodyLarge: GoogleFonts.inter(
       fontSize: 15,
       fontWeight: FontWeight.w400,
@@ -66,7 +61,6 @@ TextTheme _buildTextTheme() {
       color: AppColors.textTertiary,
       height: 1.4,
     ),
-    // Labels / buttons
     labelLarge: GoogleFonts.inter(
       fontSize: 14,
       fontWeight: FontWeight.w600,
@@ -88,7 +82,7 @@ TextTheme _buildTextTheme() {
 }
 
 final ThemeData appTheme = ThemeData(
-  brightness: Brightness.dark,
+  brightness: Brightness.light,
   primaryColor: AppColors.primary,
   scaffoldBackgroundColor: AppColors.background,
   textTheme: _buildTextTheme(),
@@ -97,7 +91,7 @@ final ThemeData appTheme = ThemeData(
     elevation: 0,
     scrolledUnderElevation: 0,
     foregroundColor: AppColors.textPrimary,
-    systemOverlayStyle: SystemUiOverlayStyle.light,
+    systemOverlayStyle: SystemUiOverlayStyle.dark,
     titleTextStyle: GoogleFonts.inter(
       fontSize: 15,
       fontWeight: FontWeight.w600,
@@ -134,7 +128,7 @@ final ThemeData appTheme = ThemeData(
   ),
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
-    fillColor: AppColors.elevated,
+    fillColor: AppColors.inputBg,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
       borderSide: const BorderSide(color: AppColors.borderFaint, width: 1),
@@ -153,10 +147,7 @@ final ThemeData appTheme = ThemeData(
       fontSize: 14,
       fontWeight: FontWeight.w400,
     ),
-    labelStyle: GoogleFonts.inter(
-      color: AppColors.textSecondary,
-      fontSize: 13,
-    ),
+    labelStyle: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13),
     prefixIconColor: AppColors.textTertiary,
   ),
   cardTheme: const CardThemeData(
@@ -165,7 +156,7 @@ final ThemeData appTheme = ThemeData(
     shadowColor: Colors.transparent,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(16)),
-      side: BorderSide(color: AppColors.borderFaint, width: 0.8),
+      side: BorderSide(color: AppColors.borderFaint, width: 1),
     ),
     margin: EdgeInsets.only(bottom: 10),
   ),
@@ -175,24 +166,24 @@ final ThemeData appTheme = ThemeData(
     labelStyle: GoogleFonts.inter(
       fontSize: 12,
       fontWeight: FontWeight.w500,
-      color: AppColors.accent,
+      color: AppColors.primary,
     ),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     side: const BorderSide(color: AppColors.borderFaint, width: 0.8),
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
   ),
   popupMenuTheme: PopupMenuThemeData(
-    color: AppColors.elevated,
+    color: AppColors.surface,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(14),
       side: const BorderSide(color: AppColors.borderFaint, width: 0.8),
     ),
     elevation: 8,
-    shadowColor: const Color(0x80000000),
+    shadowColor: AppColors.shadow,
     textStyle: GoogleFonts.inter(fontSize: 13, color: AppColors.textPrimary),
   ),
   dialogTheme: DialogThemeData(
-    backgroundColor: AppColors.elevated,
+    backgroundColor: AppColors.surface,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(20),
       side: const BorderSide(color: AppColors.borderFaint, width: 0.8),
@@ -208,24 +199,18 @@ final ThemeData appTheme = ThemeData(
     ),
   ),
   snackBarTheme: SnackBarThemeData(
-    backgroundColor: AppColors.elevated,
-    contentTextStyle: GoogleFonts.inter(
-      fontSize: 13,
-      color: AppColors.textPrimary,
-    ),
+    backgroundColor: AppColors.textPrimary,
+    contentTextStyle: GoogleFonts.inter(fontSize: 13, color: Colors.white),
     behavior: SnackBarBehavior.floating,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-      side: const BorderSide(color: AppColors.borderFaint, width: 0.8),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
   ),
   bottomSheetTheme: const BottomSheetThemeData(
-    backgroundColor: AppColors.elevated,
+    backgroundColor: AppColors.surface,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
   ),
-  colorScheme: const ColorScheme.dark(
+  colorScheme: const ColorScheme.light(
     primary: AppColors.primary,
     secondary: AppColors.accent,
     surface: AppColors.surface,

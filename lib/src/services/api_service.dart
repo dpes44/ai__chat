@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:ai_chat/src/core/constants/app_strings.dart';
 import 'package:ai_chat/src/models/message_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -29,9 +30,16 @@ class ApiService {
     if (trimmed.isEmpty) {
       return '';
     }
-    return trimmed.endsWith('/')
+    final withoutTrailingSlash = trimmed.endsWith('/')
         ? trimmed.substring(0, trimmed.length - 1)
         : trimmed;
+    final parsed = Uri.tryParse(withoutTrailingSlash);
+    if (parsed != null &&
+        kIsWeb &&
+        parsed.host.trim().toLowerCase() == '10.0.2.2') {
+      return parsed.replace(host: 'localhost').toString();
+    }
+    return withoutTrailingSlash;
   }
 
   static String _deviceRegionOrUnknown() {

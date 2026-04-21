@@ -2,7 +2,8 @@
   "name": "mksh-admin-web",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
+    "dev:lan": "next dev -p 3000 -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",

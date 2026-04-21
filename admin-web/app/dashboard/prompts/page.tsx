@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { fetchJson } from "@/lib/client-api";
+import AiSetupMenu from "@/components/AiSetupMenu";
 
 interface PromptSettings {
   systemPromptTemplate: string;
@@ -92,45 +93,55 @@ export default function PromptsPage() {
 
   if (loading) {
     return (
-      <div className="desktop-window">
-        <div className="window-body">Loading prompt settings...</div>
+      <div className="content-layout">
+        <AiSetupMenu active="prompts" />
+        <div className="content-main-window">
+          <div className="desktop-window">
+            <div className="window-body">Loading prompt settings...</div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="desktop-window">
-      <div className="window-title">Prompt Settings</div>
-      <div className="window-body">
-        <div className="hint">
-          Configure the AI system prompt policy here. App content records (emergency numbers, tools, therapist subscriptions) are managed in Content.
-        </div>
+    <div className="content-layout">
+      <AiSetupMenu active="prompts" />
+      <div className="content-main-window">
+        <div className="desktop-window">
+          <div className="window-title">Prompt Settings</div>
+          <div className="window-body">
+            <div className="hint">
+              Configure the AI system prompt policy here. App content records (emergency numbers, tools, therapist subscriptions) are managed in Content.
+            </div>
 
-        <div style={{ marginTop: 10 }}>
-          <label>System Prompt Template</label>
-          <textarea
-            rows={18}
-            value={state.systemPromptTemplate}
-            onChange={(e) =>
-              setState((prev) => ({
-                ...prev,
-                systemPromptTemplate: e.target.value,
-              }))
-            }
-          />
-        </div>
+            <div style={{ marginTop: 10 }}>
+              <label>System Prompt Template</label>
+              <textarea
+                rows={18}
+                value={state.systemPromptTemplate}
+                onChange={(e) =>
+                  setState((prev) => ({
+                    ...prev,
+                    systemPromptTemplate: e.target.value,
+                  }))
+                }
+              />
+            </div>
 
-        {error ? <p className="error">{error}</p> : null}
-        {notice ? <p className="hint">{notice}</p> : null}
+            {error ? <p className="error">{error}</p> : null}
+            {notice ? <p className="hint">{notice}</p> : null}
 
-        <div className="actions-row">
-          <button
-            onClick={onSave}
-            disabled={saving || !csrfToken || !state.systemPromptTemplate.trim()}
-            className="btn-primary"
-          >
-            {saving ? "Saving..." : "Save Prompt Settings"}
-          </button>
+            <div className="actions-row">
+              <button
+                onClick={onSave}
+                disabled={saving || !csrfToken || !state.systemPromptTemplate.trim()}
+                className="btn-primary"
+              >
+                {saving ? "Saving..." : "Save Prompt Settings"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { fetchJson } from "@/lib/client-api";
+import AiSetupMenu from "@/components/AiSetupMenu";
 
 type Provider = "openai" | "anthropic";
 type KeyStatus = { configured: boolean; version: number; updatedAt?: string };
@@ -81,69 +82,83 @@ export default function KeysPage() {
   };
 
   if (loading) {
-    return <div className="desktop-window"><div className="window-body">Loading key status...</div></div>;
+    return (
+      <div className="content-layout">
+        <AiSetupMenu active="keys" />
+        <div className="content-main-window">
+          <div className="desktop-window">
+            <div className="window-body">Loading key status...</div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="desktop-window">
-      <div className="window-title">Provider Keys</div>
-      <div className="window-body">
-        <p className="hint">Encrypted key storage. Raw key values are never displayed.</p>
+    <div className="content-layout">
+      <AiSetupMenu active="keys" />
+      <div className="content-main-window">
+        <div className="desktop-window">
+          <div className="window-title">Provider Keys</div>
+          <div className="window-body">
+            <p className="hint">Encrypted key storage. Raw key values are never displayed.</p>
 
-        {status ? (
-          <table className="table" style={{ marginTop: 8, marginBottom: 12 }}>
-            <thead>
-              <tr>
-                <th>Provider</th>
-                <th>Configured</th>
-                <th>Version</th>
-                <th>Updated At</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(["openai", "anthropic"] as Provider[]).map((item) => (
-                <tr key={item}>
-                  <td>{item}</td>
-                  <td>{String(status[item]?.configured ?? false)}</td>
-                  <td>{status[item]?.version ?? 0}</td>
-                  <td>{status[item]?.updatedAt ?? "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : null}
+            {status ? (
+              <table className="table" style={{ marginTop: 8, marginBottom: 12 }}>
+                <thead>
+                  <tr>
+                    <th>Provider</th>
+                    <th>Configured</th>
+                    <th>Version</th>
+                    <th>Updated At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(["openai", "anthropic"] as Provider[]).map((item) => (
+                    <tr key={item}>
+                      <td>{item}</td>
+                      <td>{String(status[item]?.configured ?? false)}</td>
+                      <td>{status[item]?.version ?? 0}</td>
+                      <td>{status[item]?.updatedAt ?? "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : null}
 
-        <form onSubmit={onRotate}>
-          <div className="form-grid form-grid-2">
-            <div>
-              <label>Provider</label>
-              <select value={provider} onChange={(e) => setProvider(e.target.value as Provider)}>
-                <option value="openai">openai</option>
-                <option value="anthropic">anthropic</option>
-              </select>
-            </div>
-            <div>
-              <label>New API Key</label>
-              <input
-                type="password"
-                autoComplete="new-password"
-                value={newApiKey}
-                onChange={(e) => setNewApiKey(e.target.value)}
-                required
-                minLength={16}
-              />
-            </div>
+            <form onSubmit={onRotate}>
+              <div className="form-grid form-grid-2">
+                <div>
+                  <label>Provider</label>
+                  <select value={provider} onChange={(e) => setProvider(e.target.value as Provider)}>
+                    <option value="openai">openai</option>
+                    <option value="anthropic">anthropic</option>
+                  </select>
+                </div>
+                <div>
+                  <label>New API Key</label>
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    value={newApiKey}
+                    onChange={(e) => setNewApiKey(e.target.value)}
+                    required
+                    minLength={16}
+                  />
+                </div>
+              </div>
+
+              {error ? <p className="error">{error}</p> : null}
+              {message ? <p className="hint">{message}</p> : null}
+
+              <div className="actions-row">
+                <button type="submit" disabled={!csrfToken || saving} className="btn-primary">
+                  {saving ? "Updating..." : "Update Key"}
+                </button>
+              </div>
+            </form>
           </div>
-
-          {error ? <p className="error">{error}</p> : null}
-          {message ? <p className="hint">{message}</p> : null}
-
-          <div className="actions-row">
-            <button type="submit" disabled={!csrfToken || saving} className="btn-primary">
-              {saving ? "Updating..." : "Update Key"}
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );

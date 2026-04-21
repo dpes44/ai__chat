@@ -29,6 +29,18 @@ class RuntimeContentService {
     'http://127.0.0.1:3000',
     'http://localhost:3000',
   ];
+  static const bool _allowLocalFallback = bool.fromEnvironment(
+    'ALLOW_LOCAL_RUNTIME_FALLBACK',
+    defaultValue: true,
+  );
+  static const String _defaultTermsTitle = 'Terms & Conditions';
+  static const String _defaultTermsBody =
+      'This is a placeholder for your terms. Add your app usage rules, '
+      'responsibilities, and disclaimers here.';
+  static const String _defaultPrivacyTitle = 'Privacy Policy';
+  static const String _defaultPrivacyBody =
+      'This is a placeholder for your privacy practices. Describe data '
+      'handling, storage, and user rights here.';
 
   static RuntimeContent? _cache;
   static Future<RuntimeContent?>? _inFlight;
@@ -38,9 +50,14 @@ class RuntimeContentService {
     if (trimmed.isEmpty) {
       return '';
     }
-    return trimmed.endsWith('/')
+    final withoutTrailingSlash = trimmed.endsWith('/')
         ? trimmed.substring(0, trimmed.length - 1)
         : trimmed;
+    final parsed = Uri.tryParse(withoutTrailingSlash);
+    if (kIsWeb && parsed != null && parsed.host == '10.0.2.2') {
+      return parsed.replace(host: 'localhost').toString();
+    }
+    return withoutTrailingSlash;
   }
 
   Future<RuntimeContent?> loadContent() {
@@ -96,13 +113,17 @@ class RuntimeContentService {
   }
 
   List<String> _candidateBaseUrls() {
-    final candidates = <String>{};
     if (_gatewayBaseUrl.isNotEmpty) {
-      candidates.add(_gatewayBaseUrl);
-    } else {
-      candidates.addAll(_localFallbackBaseUrls);
+      return <String>[_gatewayBaseUrl];
     }
-    return candidates.toList(growable: false);
+
+    // Localhost probing is enabled by default in development so runtime
+    // content can load even when AI_GATEWAY_BASE_URL is not passed.
+    if (_allowLocalFallback) {
+      return _localFallbackBaseUrls;
+    }
+
+    return const <String>[];
   }
 
   Future<http.Response?> _requestAppContent({
@@ -119,7 +140,7 @@ class RuntimeContentService {
                 'Authorization': 'Bearer $idToken',
             },
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 3));
     } catch (error) {
       debugPrint(
         'RuntimeContentService: request failed for $baseUrl '
@@ -155,6 +176,7 @@ class RuntimeContentService {
     }
 
     final promptContext = _toStringMap(dataMap['promptContext']);
+    final legalContent = _toStringMap(dataMap['legalContent']);
     final tools = _toMapList(dataMap['tools'])
         .map(ToolItem.fromJson)
         .where(
@@ -170,7 +192,31 @@ class RuntimeContentService {
       tools: tools,
       emergencyContacts: _buildEmergencyContacts(promptContext),
       therapistSubscriptions: subscriptions,
+      termsTitle: _readLegalText(
+        legalContent['termsTitle'],
+        fallback: _defaultTermsTitle,
+      ),
+      termsBody: _readLegalText(
+        legalContent['termsBody'],
+        fallback: _defaultTermsBody,
+      ),
+      privacyTitle: _readLegalText(
+        legalContent['privacyTitle'],
+        fallback: _defaultPrivacyTitle,
+      ),
+      privacyBody: _readLegalText(
+        legalContent['privacyBody'],
+        fallback: _defaultPrivacyBody,
+      ),
     );
+  }
+
+  String _readLegalText(dynamic value, {required String fallback}) {
+    final text = (value ?? '').toString().trim();
+    if (text.isEmpty) {
+      return fallback;
+    }
+    return text;
   }
 
   Map<String, dynamic> _toStringMap(dynamic value) {
@@ -231,7 +277,8 @@ class RuntimeContentService {
       }
 
       final normalizedNumber = cleanNumber.replaceAll(RegExp(r'\s+'), '');
-      final key = '${cleanName.toLowerCase()}|${normalizedNumber.toLowerCase()}';
+      final key =
+          '${cleanName.toLowerCase()}|${normalizedNumber.toLowerCase()}';
       if (!seen.add(key)) {
         return;
       }

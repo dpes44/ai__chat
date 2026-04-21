@@ -4,6 +4,10 @@ import { getFirestore } from "firebase-admin/firestore";
 
 let app: App;
 
+function resolveProjectId(parsedProjectId?: string): string {
+  return process.env.GCP_PROJECT_ID || parsedProjectId || "";
+}
+
 if (!getApps().length) {
   const serviceAccountRaw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
   if (serviceAccountRaw) {
@@ -12,12 +16,13 @@ if (!getApps().length) {
       client_email?: string;
       private_key?: string;
     };
+    const projectId = resolveProjectId(parsed.project_id);
     app = initializeApp({
       credential: cert(parsed as Parameters<typeof cert>[0]),
-      projectId: process.env.GCP_PROJECT_ID || parsed.project_id,
+      projectId,
     });
   } else {
-    const projectId = process.env.GCP_PROJECT_ID;
+    const projectId = resolveProjectId();
     if (!projectId) {
       throw new Error("Missing GCP_PROJECT_ID environment variable.");
     }

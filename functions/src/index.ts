@@ -7,6 +7,8 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 
 import {
   AI_METRICS_DAILY_COLLECTION,
+  MOOD_LOGS_SUBCOLLECTION,
+  MOOD_METRICS_DAILY_COLLECTION,
   AI_REQUEST_LOGS_COLLECTION,
   AI_ROUTING_DOC_PATH,
   DEFAULT_AI_ROUTING_CONFIG,
@@ -43,6 +45,39 @@ function normalizeRoutingConfig(input: Partial<AiRoutingConfig> | undefined): Ai
     ...DEFAULT_AI_ROUTING_CONFIG,
     ...(input ?? {}),
   };
+}
+
+function normalizeMoodId(value: unknown): "great" | "good" | "okay" | "bad" | "terrible" {
+  const mood = (value ?? "").toString().trim().toLowerCase();
+  if (mood === "great" || mood === "good" || mood === "okay" || mood === "bad" || mood === "terrible") {
+    return mood;
+  }
+  return "okay";
+}
+
+function scoreForMoodId(moodId: string): number {
+  switch (moodId) {
+    case "great":
+      return 5;
+    case "good":
+      return 4;
+    case "okay":
+      return 3;
+    case "bad":
+      return 2;
+    case "terrible":
+      return 1;
+    default:
+      return 3;
+  }
+}
+
+function normalizeMoodScore(data: Record<string, unknown>, moodId: string): number {
+  const raw = Number(data.moodScore ?? 0);
+  if (Number.isFinite(raw) && raw >= 1 && raw <= 5) {
+    return raw;
+  }
+  return scoreForMoodId(moodId);
 }
 
 function parseRequest(input: unknown): GenerateMentalHealthReplyRequest {
@@ -366,5 +401,78 @@ export const aggregateAiMetricsDaily = onSchedule(
     });
 
     logger.info("Daily AI metrics aggregated", { dateKey, requests, errors });
+  },
+);
+
+export const aggregateMoodMetricsDaily = onSchedule(
+  { region: "us-central1", schedule: "20 1 * * *", timeZone: "UTC" },
+  async () => {
+    const now = new Date();
+    const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+    const dateKeys: string[] = [];
+    for (let dayOffset = 1; dayOffset <= 35; dayOffset += 1) {
+      const date = new Date(end);
+      date.setUTCDate(date.getUTCDate() - dayOffset);
+      dateKeys.push(date.toISOString().slice(0, 10));
+    }
+
+    for (const dateKey of dateKeys) {
+      const snap = await db
+        .collectionGroup(MOOD_LOGS_SUBCOLLECTION)
+        .where("dateKey", "==", dateKey)
+        .get();
+
+      const userSet = new Set<string>();
+      const distribution = {
+        great: 0,
+        good: 0,
+        okay: 0,
+        bad: 0,
+        terrible: 0,
+      };
+
+      let totalEntries = 0;
+      let totalScore = 0;
+      let withNotes = 0;
+
+      for (const doc of snap.docs) {
+        const data = doc.data() as Record<string, unknown>;
+        const moodId = normalizeMoodId(data.moodId);
+        const score = normalizeMoodScore(data, moodId);
+        const uid = (data.uid ?? "").toString();
+        const note = (data.note ?? "").toString().trim();
+
+        totalEntries += 1;
+        totalScore += score;
+        distribution[moodId] += 1;
+        if (note.length > 0) {
+          withNotes += 1;
+        }
+        if (uid) {
+          userSet.add(toUserHash(uid));
+        }
+      }
+
+      const averageMoodScore =
+        totalEntries > 0 ? Number((totalScore / totalEntries).toFixed(4)) : 0;
+
+      await db.collection(MOOD_METRICS_DAILY_COLLECTION).doc(dateKey).set({
+        date: dateKey,
+        totalEntries,
+        uniqueUsers: userSet.size,
+        averageMoodScore,
+        withNotes,
+        distribution,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      logger.info("Daily mood metrics aggregated", {
+        dateKey,
+        totalEntries,
+        uniqueUsers: userSet.size,
+        averageMoodScore,
+      });
+    }
   },
 );

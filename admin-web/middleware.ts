@@ -10,7 +10,9 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/api/router") ||
     pathname.startsWith("/api/prompts") ||
     pathname.startsWith("/api/content") ||
-    pathname.startsWith("/api/keys");
+    pathname.startsWith("/api/keys") ||
+    pathname.startsWith("/api/forum") ||
+    pathname.startsWith("/api/appointments");
 
   if (!protectedDashboardRoute && !protectedApiRoute) {
     return NextResponse.next();
@@ -32,5 +34,13 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/router", "/api/prompts", "/api/content/:path*", "/api/keys/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/api/router",
+    "/api/prompts",
+    "/api/content/:path*",
+    "/api/keys/:path*",
+    "/api/forum/:path*",
+    "/api/appointments/:path*",
+  ],
 };

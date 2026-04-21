@@ -20,6 +20,7 @@ export interface AiRoutingConfig {
   promptContext: PromptContextConfig;
   tools: ToolConfig[];
   therapistSubscriptions: TherapistSubscriptionConfig[];
+  legalContent: LegalContentConfig;
 }
 
 export interface PromptContextConfig {
@@ -77,6 +78,13 @@ export interface TherapistSubscriptionConfig {
   ctaLabel: string;
 }
 
+export interface LegalContentConfig {
+  termsTitle: string;
+  termsBody: string;
+  privacyTitle: string;
+  privacyBody: string;
+}
+
 export interface GenerateReplyRequest {
   message: string;
   history: ChatHistoryMessage[];
@@ -110,6 +118,12 @@ export const DEFAULT_AI_ROUTING_CONFIG: AiRoutingConfig = {
   },
   tools: [],
   therapistSubscriptions: [],
+  legalContent: {
+    termsTitle: "Terms & Conditions",
+    termsBody: "",
+    privacyTitle: "Privacy Policy",
+    privacyBody: "",
+  },
 };
 
 const MODEL_PRICING_PER_1K_TOKENS_USD: Record<
@@ -543,6 +557,10 @@ export function normalizeRoutingConfig(
   )
     ? (input.therapistSubscriptions as TherapistSubscriptionConfig[])
     : DEFAULT_AI_ROUTING_CONFIG.therapistSubscriptions;
+  const legalContent: LegalContentConfig = {
+    ...DEFAULT_AI_ROUTING_CONFIG.legalContent,
+    ...((input?.legalContent ?? {}) as Partial<LegalContentConfig>),
+  };
 
   return {
     ...DEFAULT_AI_ROUTING_CONFIG,
@@ -550,6 +568,7 @@ export function normalizeRoutingConfig(
     promptContext,
     tools,
     therapistSubscriptions,
+    legalContent,
   };
 }
 

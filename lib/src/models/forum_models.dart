@@ -9,6 +9,8 @@ class ForumThread {
   final DateTime createdAt;
   final int replyCount;
   final bool edited;
+  final bool isFlagged;
+  final bool isHidden;
 
   const ForumThread({
     required this.id,
@@ -19,6 +21,8 @@ class ForumThread {
     required this.createdAt,
     required this.replyCount,
     required this.edited,
+    required this.isFlagged,
+    required this.isHidden,
   });
 
   factory ForumThread.fromDoc(DocumentSnapshot doc) {
@@ -32,6 +36,8 @@ class ForumThread {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       replyCount: (data['replyCount'] as int?) ?? 0,
       edited: (data['edited'] as bool?) ?? false,
+      isFlagged: (data['isFlagged'] as bool?) ?? false,
+      isHidden: (data['isHidden'] as bool?) ?? false,
     );
   }
 
@@ -44,6 +50,8 @@ class ForumThread {
       'createdAt': Timestamp.fromDate(createdAt),
       'replyCount': replyCount,
       'edited': edited,
+      'isFlagged': isFlagged,
+      'isHidden': isHidden,
     };
   }
 }
@@ -56,6 +64,8 @@ class ForumReply {
   final String authorUid;
   final DateTime createdAt;
   final bool edited;
+  final bool isFlagged;
+  final bool isHidden;
 
   const ForumReply({
     required this.id,
@@ -65,6 +75,8 @@ class ForumReply {
     required this.authorUid,
     required this.createdAt,
     required this.edited,
+    required this.isFlagged,
+    required this.isHidden,
   });
 
   factory ForumReply.fromDoc(DocumentSnapshot doc) {
@@ -77,6 +89,8 @@ class ForumReply {
       authorUid: (data['authorUid'] ?? '').toString(),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       edited: (data['edited'] as bool?) ?? false,
+      isFlagged: (data['isFlagged'] as bool?) ?? false,
+      isHidden: (data['isHidden'] as bool?) ?? false,
     );
   }
 
@@ -88,6 +102,8 @@ class ForumReply {
       'authorUid': authorUid,
       'createdAt': Timestamp.fromDate(createdAt),
       'edited': edited,
+      'isFlagged': isFlagged,
+      'isHidden': isHidden,
     };
   }
 }
