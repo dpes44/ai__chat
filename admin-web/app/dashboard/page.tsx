@@ -44,6 +44,11 @@ export default async function DashboardPage() {
               <div><Link href="/dashboard/content">Open via Content Menu</Link></div>
             </div>
             <div className="metric-box">
+              <div className="label">Users</div>
+              <div className="value">Accounts & moderation</div>
+              <div><Link href="/dashboard/users">Open Users</Link></div>
+            </div>
+            <div className="metric-box">
               <div className="label">Health</div>
               <div className="value">Usage metrics</div>
               <div><Link href="/dashboard/health">Open via Insights Menu</Link></div>

@@ -4,7 +4,11 @@ import { z } from "zod";
 
 import { logAudit } from "@/lib/audit";
 import { assertCsrfToken } from "@/lib/csrf";
-import { APPOINTMENTS_COLLECTION, DOCTORS_COLLECTION } from "@/lib/constants";
+import {
+  APPOINTMENTS_COLLECTION,
+  COLLECTION_META_DOC_ID,
+  DOCTORS_COLLECTION,
+} from "@/lib/constants";
 import { db } from "@/lib/firebase-admin";
 import { getAdminSession } from "@/lib/session";
 
@@ -67,6 +71,7 @@ export async function GET() {
   ]);
 
   const doctors = doctorSnap.docs
+    .filter((doc) => doc.id !== COLLECTION_META_DOC_ID)
     .map((doc) => {
       const data = (doc.data() ?? {}) as JsonMap;
       return {
@@ -85,6 +90,7 @@ export async function GET() {
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const appointments = appointmentsSnap.docs
+    .filter((doc) => doc.id !== COLLECTION_META_DOC_ID)
     .map((doc) => {
       const data = (doc.data() ?? {}) as JsonMap;
       return {

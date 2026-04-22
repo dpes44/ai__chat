@@ -12,7 +12,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/api/content") ||
     pathname.startsWith("/api/keys") ||
     pathname.startsWith("/api/forum") ||
-    pathname.startsWith("/api/appointments");
+    pathname.startsWith("/api/appointments") ||
+    pathname.startsWith("/api/users");
 
   if (!protectedDashboardRoute && !protectedApiRoute) {
     return NextResponse.next();
@@ -42,5 +43,6 @@ export const config = {
     "/api/keys/:path*",
     "/api/forum/:path*",
     "/api/appointments/:path*",
+    "/api/users/:path*",
   ],
 };

@@ -1,12 +1,13 @@
-import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { logAudit } from "@/lib/audit";
-import { AiRoutingConfig, normalizeRoutingConfig } from "@/lib/ai";
+import {
+  ContentSettingsPayload,
+  readContentSettings,
+  writeContentSettings,
+} from "@/lib/content-store";
 import { assertCsrfToken } from "@/lib/csrf";
-import { AI_ROUTING_DOC_PATH } from "@/lib/constants";
-import { db } from "@/lib/firebase-admin";
 import { getAdminSession } from "@/lib/session";
 
 const toolOptionSchema = z.object({
@@ -84,10 +85,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  const snap = await db.doc(AI_ROUTING_DOC_PATH).get();
-  const data = normalizeRoutingConfig(
-    snap.exists ? (snap.data() as Partial<AiRoutingConfig>) : undefined,
-  );
+  const data = await readContentSettings({ includeLegacyFallback: true });
 
   return NextResponse.json({
     data: {
@@ -123,28 +121,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid CSRF token." }, { status: 403 });
   }
 
-  const beforeSnap = await db.doc(AI_ROUTING_DOC_PATH).get();
-  const before = beforeSnap.exists ? beforeSnap.data() : {};
-  const nextConfig = {
+  const before = await readContentSettings({ includeLegacyFallback: true });
+  const nextConfig: ContentSettingsPayload = {
     promptContext: parsed.data.promptContext,
     tools: parsed.data.tools,
     therapistSubscriptions: parsed.data.therapistSubscriptions,
     legalContent: parsed.data.legalContent,
   };
 
-  await db.doc(AI_ROUTING_DOC_PATH).set(
-    {
-      ...nextConfig,
-      updatedAt: FieldValue.serverTimestamp(),
-      updatedBy: session.sub,
-    },
-    { merge: true },
-  );
+  await writeContentSettings(nextConfig, session.sub);
 
   await logAudit({
     actor: session.sub,
     action: "AI_CONTENT_UPDATED",
-    target: AI_ROUTING_DOC_PATH,
+    target: "content_collections/*",
     diffSummary: JSON.stringify({ before, after: nextConfig }).slice(0, 900),
   });
 

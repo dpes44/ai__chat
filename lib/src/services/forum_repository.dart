@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ai_chat/src/models/forum_models.dart';
 
 class ForumRepository {
+  static const String _metaDocId = '_meta';
   final FirebaseFirestore _db;
   ForumRepository({FirebaseFirestore? db})
     : _db = db ?? FirebaseFirestore.instance;
@@ -14,6 +15,7 @@ class ForumRepository {
         .snapshots()
         .map(
           (snap) => snap.docs
+              .where((doc) => doc.id != _metaDocId)
               .map(ForumThread.fromDoc)
               .where((row) => !row.isHidden)
               .toList(),
@@ -30,6 +32,7 @@ class ForumRepository {
         .snapshots()
         .map(
           (snap) => snap.docs
+              .where((doc) => doc.id != _metaDocId)
               .map(ForumReply.fromDoc)
               .where((row) => !row.isHidden)
               .toList(),

@@ -9,7 +9,15 @@ export const FORUM_THREADS_COLLECTION = "threads";
 export const FORUM_REPLIES_SUBCOLLECTION = "replies";
 export const DOCTORS_COLLECTION = "doctors";
 export const APPOINTMENTS_COLLECTION = "appointments";
+export const USERS_COLLECTION = "users";
+export const USER_MOODS_COLLECTION = "user_moods";
+export const NICKNAME_CLAIMS_COLLECTION = "nickname_claims";
 export const ADMIN_AUDIT_LOGS_COLLECTION = "admin_audit_logs";
+export const CONTENT_EMERGENCY_NUMBERS_COLLECTION = "content_emergency_numbers";
+export const CONTENT_TOOLS_COLLECTION = "content_tools";
+export const CONTENT_THERAPIST_SUBSCRIPTIONS_COLLECTION = "content_therapist_subscriptions";
+export const CONTENT_LEGAL_COLLECTION = "content_legal";
+export const COLLECTION_META_DOC_ID = "_meta";
 
 export const SESSION_COOKIE_NAME = "mksh_admin_session";
 export const CSRF_COOKIE_NAME = "mksh_admin_csrf";

@@ -8,7 +8,8 @@ export type ContentMenuItem =
   | "doctors"
   | "appointments"
   | "forum"
-  | "mood";
+  | "mood"
+  | "users";
 
 interface ContentMenuProps {
   active?: ContentMenuItem;
@@ -89,6 +90,9 @@ export default function ContentMenu(props: ContentMenuProps) {
         </Link>
         <Link className={`content-nav-link ${isActive("mood")}`} href="/dashboard/mood">
           Mood
+        </Link>
+        <Link className={`content-nav-link ${isActive("users")}`} href="/dashboard/users">
+          Users
         </Link>
       </div>
     </aside>

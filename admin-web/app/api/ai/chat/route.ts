@@ -18,6 +18,7 @@ import {
   toUserHash,
 } from "@/lib/ai";
 import { callAnthropic, callOpenAI, ProviderError } from "@/lib/ai-providers";
+import { readAiPromptContextOverrides } from "@/lib/content-store";
 import { auth, db } from "@/lib/firebase-admin";
 import { getProviderApiKey } from "@/lib/provider-keys";
 import { redactSensitiveText } from "@/lib/redaction";
@@ -174,6 +175,13 @@ export async function POST(request: Request) {
   const routing = normalizeRoutingConfig(
     routingSnap.exists ? (routingSnap.data() as Partial<AiRoutingConfig>) : undefined,
   );
+  const promptContextOverrides = await readAiPromptContextOverrides({
+    legacyPromptContext: routing.promptContext,
+  });
+  const promptContext: PromptContextConfig = {
+    ...routing.promptContext,
+    ...promptContextOverrides,
+  };
 
   if (!routing.enabled) {
     return jsonResponse(
@@ -213,7 +221,7 @@ export async function POST(request: Request) {
       language: payload.language,
       userRegion: payload.userRegion,
       systemPromptTemplate: routing.systemPromptTemplate,
-      promptContext: routing.promptContext,
+      promptContext,
     });
 
     tokenIn = reply.tokenIn;
@@ -274,7 +282,7 @@ export async function POST(request: Request) {
           language: payload.language,
           userRegion: payload.userRegion,
           systemPromptTemplate: routing.systemPromptTemplate,
-          promptContext: routing.promptContext,
+          promptContext,
         });
 
         providerUsed = routing.fallbackProvider;

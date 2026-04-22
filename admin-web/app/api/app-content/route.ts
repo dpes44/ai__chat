@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  AI_ROUTING_DOC_PATH,
-} from "@/lib/constants";
-import {
-  AiRoutingConfig,
-  normalizeRoutingConfig,
-} from "@/lib/ai";
-import { db } from "@/lib/firebase-admin";
+import { readContentSettings } from "@/lib/content-store";
 
 function resolvedOrigin(request: Request): string | null {
   const origin = request.headers.get("origin");
@@ -74,17 +67,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Origin is not allowed." }, { status: 403 });
   }
 
-  const snap = await db.doc(AI_ROUTING_DOC_PATH).get();
-  const routing = normalizeRoutingConfig(
-    snap.exists ? (snap.data() as Partial<AiRoutingConfig>) : undefined,
-  );
+  const content = await readContentSettings({ includeLegacyFallback: true });
 
   return jsonResponse(request, {
     data: {
-      promptContext: routing.promptContext,
-      tools: routing.tools,
-      therapistSubscriptions: routing.therapistSubscriptions,
-      legalContent: routing.legalContent,
+      promptContext: content.promptContext,
+      tools: content.tools,
+      therapistSubscriptions: content.therapistSubscriptions,
+      legalContent: content.legalContent,
     },
   });
 }

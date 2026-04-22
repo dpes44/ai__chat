@@ -326,6 +326,22 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /content_emergency_numbers/{docId} {
+      allow read, write: if false;
+    }
+
+    match /content_tools/{docId} {
+      allow read, write: if false;
+    }
+
+    match /content_therapist_subscriptions/{docId} {
+      allow read, write: if false;
+    }
+
+    match /content_legal/{docId} {
+      allow read, write: if false;
+    }
+
     match /admin_auth/{docId} {
       allow read, write: if false;
     }

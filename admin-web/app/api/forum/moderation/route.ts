@@ -5,6 +5,7 @@ import { z } from "zod";
 import { logAudit } from "@/lib/audit";
 import { assertCsrfToken } from "@/lib/csrf";
 import {
+  COLLECTION_META_DOC_ID,
   FORUM_REPLIES_SUBCOLLECTION,
   FORUM_THREADS_COLLECTION,
 } from "@/lib/constants";
@@ -57,6 +58,7 @@ export async function GET() {
 
   const threadDocs = await db.collection(FORUM_THREADS_COLLECTION).get();
   const threadRows = threadDocs.docs
+    .filter((doc) => doc.id !== COLLECTION_META_DOC_ID)
     .map((doc) => {
       const data = (doc.data() ?? {}) as JsonMap;
       return {
