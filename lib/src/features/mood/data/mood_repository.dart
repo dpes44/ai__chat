@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ai_chat/src/core/generated/firestore_contract.dart';
 
 class MoodEntry {
   final DateTime date;
@@ -53,7 +54,10 @@ class MoodRepository {
   final FirebaseAuth _auth;
 
   CollectionReference<Map<String, dynamic>> _moodLogsFor(String uid) {
-    return _db.collection('user_moods').doc(uid).collection('mood_logs');
+    return _db
+        .collection(FirestoreCollections.userMoods)
+        .doc(uid)
+        .collection(FirestoreSubcollections.moodLogs);
   }
 
   Future<User> _requireUser() async {

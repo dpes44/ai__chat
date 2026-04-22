@@ -1,10 +1,6 @@
 import {
-  AI_PROVIDER_KEYS_DOC_PATH,
-  AI_ROUTING_DOC_PATH,
-  KEYS_DOC_PATH,
-  PROMPTS_DOC_PATH,
-  SYSTEM_BOOTSTRAP_COLLECTION,
-  USERS_ROUTER_DOC_PATH,
+  FIRESTORE_BOOTSTRAP_REQUIRED_COLLECTIONS,
+  FIRESTORE_BOOTSTRAP_REQUIRED_DOCS,
 } from "../lib/constants";
 import { emitScriptSummary, parseScriptOptions } from "./lib/script-runtime";
 
@@ -48,37 +44,8 @@ type SmokeSummary = {
   firestore: FirestoreStructureCheck;
 };
 
-const REQUIRED_DOCS = [
-  USERS_ROUTER_DOC_PATH,
-  PROMPTS_DOC_PATH,
-  KEYS_DOC_PATH,
-  AI_ROUTING_DOC_PATH,
-  AI_PROVIDER_KEYS_DOC_PATH,
-  `${SYSTEM_BOOTSTRAP_COLLECTION}/collections`,
-];
-
-const REQUIRED_COLLECTION_NAMES = [
-  "admin_auth",
-  "admin_audit_logs",
-  "app_config",
-  "usersrouter",
-  "prompts",
-  "keys",
-  "users",
-  "nickname_claims",
-  "doctors",
-  "appointments",
-  "threads",
-  "threads/{threadId}/replies",
-  "user_moods",
-  "ai_request_logs",
-  "ai_metrics_daily",
-  "mood_metrics_daily",
-  "content_emergency_numbers",
-  "content_tools",
-  "content_therapist_subscriptions",
-  "content_legal",
-];
+const REQUIRED_DOCS = FIRESTORE_BOOTSTRAP_REQUIRED_DOCS;
+const REQUIRED_COLLECTION_NAMES = FIRESTORE_BOOTSTRAP_REQUIRED_COLLECTIONS;
 
 function readEnv(name: string): string {
   return (process.env[name] ?? "").trim();
@@ -287,18 +254,18 @@ async function runFirestoreStructureCheck(): Promise<FirestoreStructureCheck> {
     const ok = missingDocs.length === 0 && missingFromBootstrap.length === 0;
     return {
       ok,
-      checkedDocs: REQUIRED_DOCS,
+      checkedDocs: [...REQUIRED_DOCS],
       missingDocs,
-      requiredCollections: REQUIRED_COLLECTION_NAMES,
+      requiredCollections: [...REQUIRED_COLLECTION_NAMES],
       missingFromBootstrap,
       message: ok ? "ok" : "Firestore structure mismatch.",
     };
   } catch (error) {
     return {
       ok: false,
-      checkedDocs: REQUIRED_DOCS,
+      checkedDocs: [...REQUIRED_DOCS],
       missingDocs: [],
-      requiredCollections: REQUIRED_COLLECTION_NAMES,
+      requiredCollections: [...REQUIRED_COLLECTION_NAMES],
       missingFromBootstrap: [],
       message: error instanceof Error ? error.message : "Failed to query Firestore.",
     };
@@ -332,9 +299,9 @@ async function main() {
     endpointChecks: [],
     firestore: {
       ok: false,
-      checkedDocs: REQUIRED_DOCS,
+      checkedDocs: [...REQUIRED_DOCS],
       missingDocs: [],
-      requiredCollections: REQUIRED_COLLECTION_NAMES,
+      requiredCollections: [...REQUIRED_COLLECTION_NAMES],
       missingFromBootstrap: [],
       message: includeFirestoreChecks ? "not started" : "skipped",
     },

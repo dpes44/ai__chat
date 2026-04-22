@@ -1,10 +1,6 @@
 import {
-  AI_PROVIDER_KEYS_DOC_PATH,
-  AI_ROUTING_DOC_PATH,
-  KEYS_DOC_PATH,
-  PROMPTS_DOC_PATH,
-  SYSTEM_BOOTSTRAP_COLLECTION,
-  USERS_ROUTER_DOC_PATH,
+  FIRESTORE_BOOTSTRAP_REQUIRED_COLLECTIONS,
+  FIRESTORE_BOOTSTRAP_REQUIRED_DOCS,
 } from "../lib/constants";
 import { db } from "../lib/firebase-admin";
 import { emitScriptSummary, parseScriptOptions } from "./lib/script-runtime";
@@ -16,37 +12,8 @@ type CheckSummary = {
   missingFromBootstrap: string[];
 };
 
-const REQUIRED_DOCS = [
-  USERS_ROUTER_DOC_PATH,
-  PROMPTS_DOC_PATH,
-  KEYS_DOC_PATH,
-  AI_ROUTING_DOC_PATH,
-  AI_PROVIDER_KEYS_DOC_PATH,
-  `${SYSTEM_BOOTSTRAP_COLLECTION}/collections`,
-];
-
-const REQUIRED_COLLECTION_NAMES = [
-  "admin_auth",
-  "admin_audit_logs",
-  "app_config",
-  "usersrouter",
-  "prompts",
-  "keys",
-  "users",
-  "nickname_claims",
-  "doctors",
-  "appointments",
-  "threads",
-  "threads/{threadId}/replies",
-  "user_moods",
-  "ai_request_logs",
-  "ai_metrics_daily",
-  "mood_metrics_daily",
-  "content_emergency_numbers",
-  "content_tools",
-  "content_therapist_subscriptions",
-  "content_legal",
-];
+const REQUIRED_DOCS = FIRESTORE_BOOTSTRAP_REQUIRED_DOCS;
+const REQUIRED_COLLECTION_NAMES = FIRESTORE_BOOTSTRAP_REQUIRED_COLLECTIONS;
 
 async function main() {
   const options = parseScriptOptions("script:check-firestore-structure");
@@ -65,9 +32,9 @@ async function main() {
   );
 
   const summary: CheckSummary = {
-    checkedDocs: REQUIRED_DOCS,
+    checkedDocs: [...REQUIRED_DOCS],
     missingDocs,
-    requiredCollections: REQUIRED_COLLECTION_NAMES,
+    requiredCollections: [...REQUIRED_COLLECTION_NAMES],
     missingFromBootstrap,
   };
 

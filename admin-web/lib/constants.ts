@@ -1,26 +1,41 @@
-export const ADMIN_AUTH_DOC_PATH = "admin_auth/root_admin";
-export const AI_ROUTING_DOC_PATH = "app_config/ai_routing";
-export const AI_PROVIDER_KEYS_DOC_PATH = "app_config/provider_keys";
-export const USERS_ROUTER_DOC_PATH = "usersrouter/current";
-export const PROMPTS_DOC_PATH = "prompts/current";
-export const KEYS_DOC_PATH = "keys/providers";
-export const AI_METRICS_DAILY_COLLECTION = "ai_metrics_daily";
-export const AI_REQUEST_LOGS_COLLECTION = "ai_request_logs";
-export const MOOD_METRICS_DAILY_COLLECTION = "mood_metrics_daily";
-export const MOOD_LOGS_SUBCOLLECTION = "mood_logs";
-export const FORUM_THREADS_COLLECTION = "threads";
-export const FORUM_REPLIES_SUBCOLLECTION = "replies";
-export const DOCTORS_COLLECTION = "doctors";
-export const APPOINTMENTS_COLLECTION = "appointments";
-export const USERS_COLLECTION = "users";
-export const USER_MOODS_COLLECTION = "user_moods";
-export const NICKNAME_CLAIMS_COLLECTION = "nickname_claims";
-export const ADMIN_AUDIT_LOGS_COLLECTION = "admin_audit_logs";
-export const CONTENT_EMERGENCY_NUMBERS_COLLECTION = "content_emergency_numbers";
-export const CONTENT_TOOLS_COLLECTION = "content_tools";
-export const CONTENT_THERAPIST_SUBSCRIPTIONS_COLLECTION = "content_therapist_subscriptions";
-export const CONTENT_LEGAL_COLLECTION = "content_legal";
-export const SYSTEM_BOOTSTRAP_COLLECTION = "system_bootstrap";
+import {
+  FIRESTORE_COLLECTIONS,
+  FIRESTORE_DOCS,
+  FIRESTORE_REQUIRED_COLLECTIONS,
+  FIRESTORE_REQUIRED_DOCS,
+  FIRESTORE_SUBCOLLECTIONS,
+} from "./generated/firestore-contract";
+
+export const ADMIN_AUTH_DOC_PATH = FIRESTORE_DOCS.adminAuthRoot;
+export const AI_ROUTING_DOC_PATH = FIRESTORE_DOCS.aiRouting;
+export const AI_PROVIDER_KEYS_DOC_PATH = FIRESTORE_DOCS.aiProviderKeys;
+export const USERS_ROUTER_DOC_PATH = FIRESTORE_DOCS.usersRouterCurrent;
+export const PROMPTS_DOC_PATH = FIRESTORE_DOCS.promptsCurrent;
+export const KEYS_DOC_PATH = FIRESTORE_DOCS.keysProviders;
+export const AI_METRICS_DAILY_COLLECTION = FIRESTORE_COLLECTIONS.aiMetricsDaily;
+export const AI_REQUEST_LOGS_COLLECTION = FIRESTORE_COLLECTIONS.aiRequestLogs;
+export const MOOD_METRICS_DAILY_COLLECTION = FIRESTORE_COLLECTIONS.moodMetricsDaily;
+export const MOOD_LOGS_SUBCOLLECTION = FIRESTORE_SUBCOLLECTIONS.moodLogs;
+export const FORUM_THREADS_COLLECTION = FIRESTORE_COLLECTIONS.threads;
+export const FORUM_REPLIES_SUBCOLLECTION = FIRESTORE_SUBCOLLECTIONS.forumReplies;
+export const DOCTORS_COLLECTION = FIRESTORE_COLLECTIONS.doctors;
+export const APPOINTMENTS_COLLECTION = FIRESTORE_COLLECTIONS.appointments;
+export const USERS_COLLECTION = FIRESTORE_COLLECTIONS.users;
+export const USER_MOODS_COLLECTION = FIRESTORE_COLLECTIONS.userMoods;
+export const NICKNAME_CLAIMS_COLLECTION = FIRESTORE_COLLECTIONS.nicknameClaims;
+export const ADMIN_AUDIT_LOGS_COLLECTION = FIRESTORE_COLLECTIONS.adminAuditLogs;
+export const CONTENT_EMERGENCY_NUMBERS_COLLECTION =
+  FIRESTORE_COLLECTIONS.contentEmergencyNumbers;
+export const CONTENT_TOOLS_COLLECTION = FIRESTORE_COLLECTIONS.contentTools;
+export const CONTENT_THERAPIST_SUBSCRIPTIONS_COLLECTION =
+  FIRESTORE_COLLECTIONS.contentTherapistSubscriptions;
+export const CONTENT_LEGAL_COLLECTION = FIRESTORE_COLLECTIONS.contentLegal;
+export const SYSTEM_BOOTSTRAP_COLLECTION = FIRESTORE_COLLECTIONS.systemBootstrap;
+
+export const FIRESTORE_BOOTSTRAP_REQUIRED_COLLECTIONS = [
+  ...FIRESTORE_REQUIRED_COLLECTIONS,
+];
+export const FIRESTORE_BOOTSTRAP_REQUIRED_DOCS = [...FIRESTORE_REQUIRED_DOCS];
 
 export const SESSION_COOKIE_NAME = "mksh_admin_session";
 export const CSRF_COOKIE_NAME = "mksh_admin_csrf";

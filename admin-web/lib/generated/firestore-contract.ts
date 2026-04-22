@@ -1,0 +1,76 @@
+/* eslint-disable */
+// GENERATED FILE. DO NOT EDIT.
+// Source: contracts/firestore-structure.json
+
+export const FIRESTORE_CONTRACT_SCHEMA_VERSION = 1 as const;
+
+export const FIRESTORE_COLLECTIONS = {
+  adminAuth: "admin_auth",
+  adminAuditLogs: "admin_audit_logs",
+  appConfig: "app_config",
+  usersRouter: "usersrouter",
+  prompts: "prompts",
+  keys: "keys",
+  users: "users",
+  nicknameClaims: "nickname_claims",
+  doctors: "doctors",
+  appointments: "appointments",
+  threads: "threads",
+  userMoods: "user_moods",
+  aiRequestLogs: "ai_request_logs",
+  aiMetricsDaily: "ai_metrics_daily",
+  moodMetricsDaily: "mood_metrics_daily",
+  contentEmergencyNumbers: "content_emergency_numbers",
+  contentTools: "content_tools",
+  contentTherapistSubscriptions: "content_therapist_subscriptions",
+  contentLegal: "content_legal",
+  systemBootstrap: "system_bootstrap",
+} as const;
+
+export const FIRESTORE_SUBCOLLECTIONS = {
+  forumReplies: "replies",
+  moodLogs: "mood_logs",
+} as const;
+
+export const FIRESTORE_DOCS = {
+  adminAuthRoot: "admin_auth/root_admin",
+  aiRouting: "app_config/ai_routing",
+  aiProviderKeys: "app_config/provider_keys",
+  usersRouterCurrent: "usersrouter/current",
+  promptsCurrent: "prompts/current",
+  keysProviders: "keys/providers",
+  systemBootstrapCollections: "system_bootstrap/collections",
+} as const;
+
+export const FIRESTORE_REQUIRED_COLLECTIONS = [
+  "admin_auth",
+  "admin_audit_logs",
+  "app_config",
+  "usersrouter",
+  "prompts",
+  "keys",
+  "users",
+  "nickname_claims",
+  "doctors",
+  "appointments",
+  "threads",
+  "threads/{threadId}/replies",
+  "user_moods",
+  "ai_request_logs",
+  "ai_metrics_daily",
+  "mood_metrics_daily",
+  "content_emergency_numbers",
+  "content_tools",
+  "content_therapist_subscriptions",
+  "content_legal",
+] as const;
+
+export const FIRESTORE_REQUIRED_DOCS = [
+  "usersrouter/current",
+  "prompts/current",
+  "keys/providers",
+  "app_config/ai_routing",
+  "app_config/provider_keys",
+  "system_bootstrap/collections",
+] as const;
+

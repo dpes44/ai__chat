@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ai_chat/src/features/forum/domain/forum_models.dart';
+import 'package:ai_chat/src/core/generated/firestore_contract.dart';
 
 class ForumRepository {
   final FirebaseFirestore _db;
@@ -8,7 +9,7 @@ class ForumRepository {
 
   Stream<List<ForumThread>> threadsStream({int limit = 30}) {
     return _db
-        .collection('threads')
+        .collection(FirestoreCollections.threads)
         .where('isHidden', isEqualTo: false)
         .snapshots()
         .map((snap) {
@@ -26,9 +27,9 @@ class ForumRepository {
 
   Stream<List<ForumReply>> repliesStream(String threadId, {int limit = 100}) {
     return _db
-        .collection('threads')
+        .collection(FirestoreCollections.threads)
         .doc(threadId)
-        .collection('replies')
+        .collection(FirestoreSubcollections.forumReplies)
         .where('isHidden', isEqualTo: false)
         .snapshots()
         .map((snap) {
@@ -50,7 +51,7 @@ class ForumRepository {
     required String authorUid,
   }) async {
     final now = DateTime.now();
-    await _db.collection('threads').add({
+    await _db.collection(FirestoreCollections.threads).add({
       'title': '',
       'body': body,
       'author': author,
@@ -67,7 +68,7 @@ class ForumRepository {
     required String threadId,
     required String body,
   }) async {
-    await _db.collection('threads').doc(threadId).update({
+    await _db.collection(FirestoreCollections.threads).doc(threadId).update({
       'body': body,
       'edited': true,
     });
@@ -75,7 +76,7 @@ class ForumRepository {
 
   Future<void> deleteThread(String threadId) async {
     // Optionally delete subcollection; for simplicity just delete thread.
-    await _db.collection('threads').doc(threadId).delete();
+    await _db.collection(FirestoreCollections.threads).doc(threadId).delete();
   }
 
   Future<void> addReply({
@@ -85,8 +86,12 @@ class ForumRepository {
     required String authorUid,
   }) async {
     final now = DateTime.now();
-    final threadRef = _db.collection('threads').doc(threadId);
-    final replyRef = threadRef.collection('replies').doc();
+    final threadRef = _db
+        .collection(FirestoreCollections.threads)
+        .doc(threadId);
+    final replyRef = threadRef
+        .collection(FirestoreSubcollections.forumReplies)
+        .doc();
     await _db.runTransaction((tx) async {
       tx.set(replyRef, {
         'threadId': threadId,
@@ -108,9 +113,9 @@ class ForumRepository {
     required String body,
   }) async {
     await _db
-        .collection('threads')
+        .collection(FirestoreCollections.threads)
         .doc(threadId)
-        .collection('replies')
+        .collection(FirestoreSubcollections.forumReplies)
         .doc(replyId)
         .update({'body': body, 'edited': true});
   }
@@ -119,8 +124,12 @@ class ForumRepository {
     required String threadId,
     required String replyId,
   }) async {
-    final threadRef = _db.collection('threads').doc(threadId);
-    final replyRef = threadRef.collection('replies').doc(replyId);
+    final threadRef = _db
+        .collection(FirestoreCollections.threads)
+        .doc(threadId);
+    final replyRef = threadRef
+        .collection(FirestoreSubcollections.forumReplies)
+        .doc(replyId);
     await _db.runTransaction((tx) async {
       tx.delete(replyRef);
       tx.update(threadRef, {'replyCount': FieldValue.increment(-1)});

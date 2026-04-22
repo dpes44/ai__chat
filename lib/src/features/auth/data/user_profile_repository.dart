@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ai_chat/src/features/auth/domain/user_profile.dart';
+import 'package:ai_chat/src/core/generated/firestore_contract.dart';
 
 class UserProfileRepository {
   UserProfileRepository({FirebaseFirestore? db})
@@ -8,7 +9,7 @@ class UserProfileRepository {
   final FirebaseFirestore _db;
 
   Future<UserProfile?> fetchProfile(String uid) async {
-    final doc = await _db.collection('users').doc(uid).get();
+    final doc = await _db.collection(FirestoreCollections.users).doc(uid).get();
     if (!doc.exists) {
       return null;
     }
@@ -25,8 +26,10 @@ class UserProfileRepository {
     final nicknameKey = normalizeNickname(cleanNickname);
     if (nicknameKey.isEmpty) return false;
 
-    final userRef = _db.collection('users').doc(uid);
-    final claimRef = _db.collection('nickname_claims').doc(nicknameKey);
+    final userRef = _db.collection(FirestoreCollections.users).doc(uid);
+    final claimRef = _db
+        .collection(FirestoreCollections.nicknameClaims)
+        .doc(nicknameKey);
 
     return _db.runTransaction((tx) async {
       final userSnap = await tx.get(userRef);
@@ -45,7 +48,7 @@ class UserProfileRepository {
         final oldNicknameKey = (userData['nicknameKey'] ?? '').toString();
         if (oldNicknameKey.isNotEmpty && oldNicknameKey != nicknameKey) {
           final oldClaimRef = _db
-              .collection('nickname_claims')
+              .collection(FirestoreCollections.nicknameClaims)
               .doc(oldNicknameKey);
           final oldClaimSnap = await tx.get(oldClaimRef);
           if (oldClaimSnap.exists) {

@@ -1,6 +1,8 @@
 import { initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 
+import { ADMIN_AUTH_DOC_PATH } from "../lib/constants";
+
 const projectId = process.env.GCP_PROJECT_ID;
 if (!projectId) {
   throw new Error("Missing GCP_PROJECT_ID");
@@ -19,7 +21,7 @@ initializeApp({ projectId });
 const db = getFirestore();
 
 async function main() {
-  await db.doc("admin_auth/root_admin").set(
+  await db.doc(ADMIN_AUTH_DOC_PATH).set(
     {
       username,
       passwordHashArgon2id,
@@ -31,7 +33,7 @@ async function main() {
     { merge: true },
   );
 
-  console.log("admin_auth/root_admin updated.");
+  console.log(`${ADMIN_AUTH_DOC_PATH} updated.`);
 }
 
 main().catch((err) => {

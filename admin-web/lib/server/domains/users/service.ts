@@ -6,6 +6,7 @@ import {
   APPOINTMENTS_COLLECTION,
   FORUM_REPLIES_SUBCOLLECTION,
   FORUM_THREADS_COLLECTION,
+  MOOD_LOGS_SUBCOLLECTION,
   NICKNAME_CLAIMS_COLLECTION,
   USER_MOODS_COLLECTION,
   USERS_COLLECTION,
@@ -288,7 +289,9 @@ async function deleteUserProfileAndClaims(uid: string): Promise<{ deletedProfile
 
 async function deleteUserMoods(uid: string): Promise<number> {
   const moodRootRef = db.collection(USER_MOODS_COLLECTION).doc(uid);
-  const deletedLogs = await deleteQueryInBatches(moodRootRef.collection("mood_logs"));
+  const deletedLogs = await deleteQueryInBatches(
+    moodRootRef.collection(MOOD_LOGS_SUBCOLLECTION),
+  );
   await moodRootRef.delete().catch(() => undefined);
   return deletedLogs;
 }

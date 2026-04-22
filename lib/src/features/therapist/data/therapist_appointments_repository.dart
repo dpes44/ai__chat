@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ai_chat/src/core/generated/firestore_contract.dart';
 
 import '../domain/therapist_appointment.dart';
 
@@ -13,10 +14,10 @@ class TherapistAppointmentsRepository {
   final FirebaseAuth _auth;
 
   CollectionReference<Map<String, dynamic>> get _doctors =>
-      _db.collection('doctors');
+      _db.collection(FirestoreCollections.doctors);
 
   CollectionReference<Map<String, dynamic>> get _appointments =>
-      _db.collection('appointments');
+      _db.collection(FirestoreCollections.appointments);
 
   Stream<List<TherapistDoctor>> doctorsStream() {
     return _doctors.where('isActive', isEqualTo: true).snapshots().map((snap) {

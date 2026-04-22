@@ -44,6 +44,15 @@ To prevent regressions back to legacy import paths (`src/models`, `src/services`
 bash scripts/check_legacy_imports.sh
 ```
 
+Firestore structure contract is source-of-truth in
+`contracts/firestore-structure.json`. Regenerate typed constants for both
+`admin-web` and `mobile` after edits:
+
+```bash
+cd admin-web
+npm run generate:firestore-contract
+```
+
 ## Admin Features
 
 - Router: active/fallback provider + model

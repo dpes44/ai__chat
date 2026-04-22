@@ -16,7 +16,8 @@
     "check:structure": "tsx scripts/check-firestore-structure.ts",
     "cleanup:meta": "tsx scripts/cleanup-legacy-meta-docs.ts",
     "smoke:prod": "tsx scripts/smoke-production.ts",
-    "alert:audit-failures": "tsx scripts/check-admin-api-failure-alerts.ts"
+    "alert:audit-failures": "tsx scripts/check-admin-api-failure-alerts.ts",
+    "generate:firestore-contract": "node --import tsx scripts/generate-firestore-contract.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",
