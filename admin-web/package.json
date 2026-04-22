@@ -7,10 +7,14 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "test:integration": "node --import tsx --test tests/integration/**/*.test.ts",
+    "test:integration:emulator": "bash scripts/run-integration-tests.sh",
     "hash:password": "tsx scripts/hash-password.ts",
     "seed:admin": "tsx scripts/seed-admin.ts",
     "migrate:content": "tsx scripts/migrate-content-collections.ts",
-    "ensure:firestore": "tsx scripts/ensure-firestore-structure.ts"
+    "ensure:firestore": "tsx scripts/ensure-firestore-structure.ts",
+    "check:structure": "tsx scripts/check-firestore-structure.ts",
+    "cleanup:meta": "tsx scripts/cleanup-legacy-meta-docs.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",

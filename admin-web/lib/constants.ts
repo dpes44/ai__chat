@@ -1,6 +1,9 @@
 export const ADMIN_AUTH_DOC_PATH = "admin_auth/root_admin";
 export const AI_ROUTING_DOC_PATH = "app_config/ai_routing";
 export const AI_PROVIDER_KEYS_DOC_PATH = "app_config/provider_keys";
+export const USERS_ROUTER_DOC_PATH = "usersrouter/current";
+export const PROMPTS_DOC_PATH = "prompts/current";
+export const KEYS_DOC_PATH = "keys/providers";
 export const AI_METRICS_DAILY_COLLECTION = "ai_metrics_daily";
 export const AI_REQUEST_LOGS_COLLECTION = "ai_request_logs";
 export const MOOD_METRICS_DAILY_COLLECTION = "mood_metrics_daily";
@@ -17,7 +20,7 @@ export const CONTENT_EMERGENCY_NUMBERS_COLLECTION = "content_emergency_numbers";
 export const CONTENT_TOOLS_COLLECTION = "content_tools";
 export const CONTENT_THERAPIST_SUBSCRIPTIONS_COLLECTION = "content_therapist_subscriptions";
 export const CONTENT_LEGAL_COLLECTION = "content_legal";
-export const COLLECTION_META_DOC_ID = "_meta";
+export const SYSTEM_BOOTSTRAP_COLLECTION = "system_bootstrap";
 
 export const SESSION_COOKIE_NAME = "mksh_admin_session";
 export const CSRF_COOKIE_NAME = "mksh_admin_csrf";

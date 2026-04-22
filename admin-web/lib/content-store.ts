@@ -11,7 +11,6 @@ import {
 } from "./ai";
 import {
   AI_ROUTING_DOC_PATH,
-  COLLECTION_META_DOC_ID,
   CONTENT_EMERGENCY_NUMBERS_COLLECTION,
   CONTENT_LEGAL_COLLECTION,
   CONTENT_THERAPIST_SUBSCRIPTIONS_COLLECTION,
@@ -210,9 +209,6 @@ export async function readEmergencyPromptContextFromCollections(): Promise<{
   const values: Partial<Pick<PromptContextConfig, EmergencyPromptContextKeys>> =
     {};
   for (const doc of snap.docs) {
-    if (doc.id === COLLECTION_META_DOC_ID) {
-      continue;
-    }
     const key = doc.id as EmergencyPromptContextKeys;
     if (!EMERGENCY_KEYS.includes(key)) {
       continue;
@@ -258,12 +254,7 @@ async function readToolsFromCollections(): Promise<{
   if (snap.empty) {
     return { values: [], hasAny: false };
   }
-  const contentDocs = snap.docs.filter((doc) => doc.id !== COLLECTION_META_DOC_ID);
-  if (!contentDocs.length) {
-    return { values: [], hasAny: false };
-  }
-
-  const values = contentDocs
+  const values = snap.docs
     .map((doc) => {
       const data = (doc.data() ?? {}) as Record<string, unknown>;
       const order = Math.max(0, Math.trunc(toFiniteNumber(data.order)));
@@ -292,12 +283,7 @@ async function readTherapistSubscriptionsFromCollections(): Promise<{
   if (snap.empty) {
     return { values: [], hasAny: false };
   }
-  const contentDocs = snap.docs.filter((doc) => doc.id !== COLLECTION_META_DOC_ID);
-  if (!contentDocs.length) {
-    return { values: [], hasAny: false };
-  }
-
-  const values = contentDocs
+  const values = snap.docs
     .map((doc) => {
       const data = (doc.data() ?? {}) as Record<string, unknown>;
       const order = Math.max(0, Math.trunc(toFiniteNumber(data.order)));
@@ -442,21 +428,7 @@ export async function writeContentSettings(
       { merge: true },
     );
   }
-  batch.set(
-    db.collection(CONTENT_TOOLS_COLLECTION).doc(COLLECTION_META_DOC_ID),
-    {
-      schemaVersion: 1,
-      contentType: "tools",
-      updatedAt: now,
-      updatedBy: actor,
-    },
-    { merge: true },
-  );
-
   for (const doc of existingToolDocs.docs) {
-    if (doc.id === COLLECTION_META_DOC_ID) {
-      continue;
-    }
     batch.delete(doc.ref);
   }
   for (let i = 0; i < payload.tools.length; i += 1) {
@@ -477,23 +449,8 @@ export async function writeContentSettings(
   }
 
   for (const doc of existingSubscriptionDocs.docs) {
-    if (doc.id === COLLECTION_META_DOC_ID) {
-      continue;
-    }
     batch.delete(doc.ref);
   }
-  batch.set(
-    db.collection(CONTENT_THERAPIST_SUBSCRIPTIONS_COLLECTION).doc(
-      COLLECTION_META_DOC_ID,
-    ),
-    {
-      schemaVersion: 1,
-      contentType: "therapistSubscriptions",
-      updatedAt: now,
-      updatedBy: actor,
-    },
-    { merge: true },
-  );
   for (let i = 0; i < payload.therapistSubscriptions.length; i += 1) {
     const item = normalizeTherapistSubscriptionInput(
       payload.therapistSubscriptions[i]!,

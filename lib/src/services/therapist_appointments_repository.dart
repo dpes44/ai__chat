@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import '../models/therapist_appointment.dart';
 
 class TherapistAppointmentsRepository {
-  static const String _metaDocId = '_meta';
   TherapistAppointmentsRepository({FirebaseFirestore? db, FirebaseAuth? auth})
     : _db = db ?? FirebaseFirestore.instance,
       _auth = auth ?? FirebaseAuth.instance;
@@ -21,10 +20,7 @@ class TherapistAppointmentsRepository {
 
   Stream<List<TherapistDoctor>> doctorsStream() {
     return _doctors.where('isActive', isEqualTo: true).snapshots().map((snap) {
-      final list = snap.docs
-          .where((doc) => doc.id != _metaDocId)
-          .map(TherapistDoctor.fromDoc)
-          .toList();
+      final list = snap.docs.map(TherapistDoctor.fromDoc).toList();
       list.sort(
         (a, b) =>
             a.name.trim().toLowerCase().compareTo(b.name.trim().toLowerCase()),
@@ -42,10 +38,7 @@ class TherapistAppointmentsRepository {
     return _appointments.where('userUid', isEqualTo: user.uid).snapshots().map((
       snap,
     ) {
-      final rows = snap.docs
-          .where((doc) => doc.id != _metaDocId)
-          .map(TherapistAppointment.fromDoc)
-          .toList();
+      final rows = snap.docs.map(TherapistAppointment.fromDoc).toList();
       rows.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return rows;
     });

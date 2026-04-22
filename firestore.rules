@@ -326,6 +326,22 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /usersrouter/{docId} {
+      allow read, write: if false;
+    }
+
+    match /prompts/{docId} {
+      allow read, write: if false;
+    }
+
+    match /keys/{docId} {
+      allow read, write: if false;
+    }
+
+    match /system_bootstrap/{docId} {
+      allow read, write: if false;
+    }
+
     match /content_emergency_numbers/{docId} {
       allow read, write: if false;
     }

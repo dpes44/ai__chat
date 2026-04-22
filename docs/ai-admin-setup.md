@@ -8,8 +8,9 @@ This setup removes Secret Manager and Cloud Functions from the critical path.
   - Admin dashboard (`/dashboard/*`)
   - AI gateway API (`POST /api/ai/chat`)
 - Firestore stores:
-  - Router config (`app_config/ai_routing`)
-  - Encrypted provider keys metadata + ciphertext (`app_config/provider_keys`)
+  - Router config (`usersrouter/current`, mirrored to `app_config/ai_routing`)
+  - Prompt template (`prompts/current`, mirrored to `app_config/ai_routing`)
+  - Encrypted provider keys metadata + ciphertext (`keys/providers`, mirrored to `app_config/provider_keys`)
   - Emergency numbers (`content_emergency_numbers/{key}`)
   - Assessment tools (`content_tools/{id}`)
   - Therapist subscriptions (`content_therapist_subscriptions/{id}`)
@@ -70,15 +71,21 @@ Open `http://localhost:3000/login`, sign in, then:
 
 ## 4) Firestore docs used
 
-- `app_config/ai_routing`
+- `usersrouter/current`
   - `activeProvider`, `activeModel`, `fallbackProvider`, `fallbackModel`
-  - `temperature`, `maxTokens`, `enabled`, `systemPromptTemplate`
+  - `temperature`, `maxTokens`, `enabled`
   - `updatedAt`, `updatedBy`
-- `app_config/provider_keys`
+- `prompts/current`
+  - `systemPromptTemplate`
+  - `updatedAt`, `updatedBy`
+- `keys/providers`
   - `openaiKeyCiphertext`, `anthropicKeyCiphertext`
   - `openaiVersion`, `anthropicVersion`
   - `openaiUpdatedAt`, `anthropicUpdatedAt`
   - `updatedAt`, `updatedBy`
+- Legacy mirrors retained for compatibility:
+  - `app_config/ai_routing`
+  - `app_config/provider_keys`
 - `content_emergency_numbers/{key}`
   - `value`, `updatedAt`, `updatedBy`
   - Keys: `suicideHelpline`, `policeEmergency`, `ambulanceNumber`,
@@ -94,11 +101,13 @@ Open `http://localhost:3000/login`, sign in, then:
 - `ai_request_logs/{requestId}` (set TTL on `expireAt`)
 - `admin_auth/root_admin`
 - `admin_audit_logs/{id}`
+- `system_bootstrap/collections`
+  - Internal bootstrap metadata and ensured collection inventory.
 
 Notes:
 - Firestore only shows collections that already contain at least one document.
 - Rules deployment does not create documents.
-- `content_tools` and `content_therapist_subscriptions` keep a `_meta` doc so the collections stay visible even when there are no active items.
+- This setup no longer depends on `_meta` sentinel docs inside runtime collections.
 
 ## 5) Deploy Firestore rules
 
@@ -133,7 +142,7 @@ npm run migrate:content -- --dry-run
 
 ## 7) Ensure full Firestore structure
 
-This command ensures all admin/mobile datasets exist with safe bootstrap docs (including users, doctors, appointments, forum, mood, router/prompts, keys, health logs, and audit log):
+This command ensures all admin/mobile datasets exist with safe bootstrap docs (including users, doctors, appointments, forum, mood, usersrouter, prompts, keys, health logs, and audit log):
 
 ```bash
 cd admin-web
@@ -142,7 +151,18 @@ GOOGLE_APPLICATION_CREDENTIALS=/abs/path/to/service-account.json \
 npm run ensure:firestore -- 'setup:ensure-structure'
 ```
 
-## 8) Flutter app gateway config
+## 8) Legacy `_meta` cleanup
+
+If your project used older bootstrap scripts, run this once to remove legacy `_meta` docs:
+
+```bash
+cd admin-web
+GCP_PROJECT_ID=your-firebase-project-id \
+GOOGLE_APPLICATION_CREDENTIALS=/abs/path/to/service-account.json \
+npm run cleanup:meta -- 'setup:cleanup-meta'
+```
+
+## 9) Flutter app gateway config
 
 Run app with gateway URL:
 
@@ -162,9 +182,46 @@ For physical device, use your machine LAN IP:
 flutter run --dart-define=AI_GATEWAY_BASE_URL=http://<your-lan-ip>:3000
 ```
 
-## 9) Important security notes
+## 10) Important security notes
 
 - Never put provider keys in Flutter code or `.env` shipped to clients.
 - Keep `ADMIN_KEYS_ENCRYPTION_SECRET` only on server runtime.
 - Restrict Firestore rules so clients cannot read admin collections/docs.
 - Rotate provider keys from dashboard when needed.
+
+## 11) Integration tests (admin domain)
+
+`admin-web` now includes emulator-backed integration tests for:
+- Users list/ban/delete lifecycle
+- Forum moderation read/update
+- Router, prompts, and keys read/write sync
+
+Requirements:
+- Firebase CLI
+- Java 21+
+
+Run:
+
+```bash
+cd admin-web
+npm run test:integration:emulator
+```
+
+To validate required docs/collections are present after deploy/migration:
+
+```bash
+cd admin-web
+GCP_PROJECT_ID=your-firebase-project-id \
+GOOGLE_APPLICATION_CREDENTIALS=/abs/path/to/service-account.json \
+npm run check:structure
+```
+
+## 12) CI gate
+
+This repo now includes GitHub Actions CI at:
+- `.github/workflows/ci.yml`
+
+CI runs:
+- Admin web typecheck
+- Admin web emulator integration tests
+- Flutter `analyze`

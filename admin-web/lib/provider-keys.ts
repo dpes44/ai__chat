@@ -1,7 +1,10 @@
 import crypto from "node:crypto";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
-import { AI_PROVIDER_KEYS_DOC_PATH } from "./constants";
+import {
+  AI_PROVIDER_KEYS_DOC_PATH,
+  KEYS_DOC_PATH,
+} from "./constants";
 import { db } from "./firebase-admin";
 import { Provider } from "./ai";
 
@@ -74,23 +77,43 @@ export async function setProviderApiKey(params: {
   newApiKey: string;
   actor: string;
 }): Promise<{ version: number }> {
-  const ref = db.doc(AI_PROVIDER_KEYS_DOC_PATH);
+  const primaryRef = db.doc(KEYS_DOC_PATH);
+  const legacyRef = db.doc(AI_PROVIDER_KEYS_DOC_PATH);
   let nextVersion = 1;
   const encrypted = encryptValue(params.newApiKey.trim());
 
   await db.runTransaction(async (tx) => {
-    const snap = await tx.get(ref);
-    const current = (snap.data() ?? {}) as Record<string, unknown>;
-    const currentVersionRaw = current[versionField(params.provider)];
-    const currentVersion =
-      typeof currentVersionRaw === "number" && Number.isFinite(currentVersionRaw)
-        ? currentVersionRaw
+    const primarySnap = await tx.get(primaryRef);
+    const legacySnap = await tx.get(legacyRef);
+    const currentPrimary = (primarySnap.data() ?? {}) as Record<string, unknown>;
+    const currentLegacy = (legacySnap.data() ?? {}) as Record<string, unknown>;
+
+    const primaryVersionRaw = currentPrimary[versionField(params.provider)];
+    const legacyVersionRaw = currentLegacy[versionField(params.provider)];
+    const primaryVersion =
+      typeof primaryVersionRaw === "number" && Number.isFinite(primaryVersionRaw)
+        ? primaryVersionRaw
+        : 0;
+    const legacyVersion =
+      typeof legacyVersionRaw === "number" && Number.isFinite(legacyVersionRaw)
+        ? legacyVersionRaw
         : 0;
 
-    nextVersion = currentVersion + 1;
+    nextVersion = Math.max(primaryVersion, legacyVersion) + 1;
 
     tx.set(
-      ref,
+      primaryRef,
+      {
+        [keyField(params.provider)]: encrypted,
+        [versionField(params.provider)]: nextVersion,
+        [updatedAtField(params.provider)]: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: params.actor,
+      },
+      { merge: true },
+    );
+    tx.set(
+      legacyRef,
       {
         [keyField(params.provider)]: encrypted,
         [versionField(params.provider)]: nextVersion,
@@ -106,38 +129,68 @@ export async function setProviderApiKey(params: {
 }
 
 export async function getProviderApiKey(provider: Provider): Promise<string> {
-  const snap = await db.doc(AI_PROVIDER_KEYS_DOC_PATH).get();
-  if (!snap.exists) {
+  const [primarySnap, legacySnap] = await Promise.all([
+    db.doc(KEYS_DOC_PATH).get(),
+    db.doc(AI_PROVIDER_KEYS_DOC_PATH).get(),
+  ]);
+
+  if (!primarySnap.exists && !legacySnap.exists) {
     throw new Error("Provider keys document not found.");
   }
 
-  const data = snap.data() as Record<string, unknown>;
-  const encrypted = data[keyField(provider)];
-  if (typeof encrypted !== "string" || !encrypted.trim()) {
-    throw new Error(`Provider key not configured for ${provider}.`);
+  const primaryData = (primarySnap.data() ?? {}) as Record<string, unknown>;
+  const legacyData = (legacySnap.data() ?? {}) as Record<string, unknown>;
+
+  const primaryEncrypted = primaryData[keyField(provider)];
+  if (typeof primaryEncrypted === "string" && primaryEncrypted.trim()) {
+    return decryptValue(primaryEncrypted);
   }
 
-  return decryptValue(encrypted);
+  const legacyEncrypted = legacyData[keyField(provider)];
+  if (typeof legacyEncrypted === "string" && legacyEncrypted.trim()) {
+    return decryptValue(legacyEncrypted);
+  }
+
+  throw new Error(`Provider key not configured for ${provider}.`);
 }
 
 export async function getProviderKeyStatuses(): Promise<Record<Provider, ProviderKeyStatus>> {
-  const snap = await db.doc(AI_PROVIDER_KEYS_DOC_PATH).get();
-  const data = (snap.exists ? snap.data() : {}) as Record<string, unknown>;
+  const [primarySnap, legacySnap] = await Promise.all([
+    db.doc(KEYS_DOC_PATH).get(),
+    db.doc(AI_PROVIDER_KEYS_DOC_PATH).get(),
+  ]);
+  const primaryData = (primarySnap.data() ?? {}) as Record<string, unknown>;
+  const legacyData = (legacySnap.data() ?? {}) as Record<string, unknown>;
 
-  const openaiVersion = Number(data.openaiVersion ?? 0);
-  const anthropicVersion = Number(data.anthropicVersion ?? 0);
+  const selectSourceFor = (provider: Provider): Record<string, unknown> => {
+    const hasPrimaryCiphertext =
+      typeof primaryData[keyField(provider)] === "string" &&
+      (primaryData[keyField(provider)] as string).length > 0;
+    if (hasPrimaryCiphertext || !legacySnap.exists) {
+      return primaryData;
+    }
+    return legacyData;
+  };
+
+  const openaiSource = selectSourceFor("openai");
+  const anthropicSource = selectSourceFor("anthropic");
+  const openaiVersion = Number(openaiSource.openaiVersion ?? 0);
+  const anthropicVersion = Number(anthropicSource.anthropicVersion ?? 0);
 
   return {
     openai: {
-      configured: typeof data.openaiKeyCiphertext === "string" && data.openaiKeyCiphertext.length > 0,
+      configured:
+        typeof openaiSource.openaiKeyCiphertext === "string" &&
+        openaiSource.openaiKeyCiphertext.length > 0,
       version: Number.isFinite(openaiVersion) ? openaiVersion : 0,
-      updatedAt: timestampToIso(data.openaiUpdatedAt),
+      updatedAt: timestampToIso(openaiSource.openaiUpdatedAt),
     },
     anthropic: {
       configured:
-        typeof data.anthropicKeyCiphertext === "string" && data.anthropicKeyCiphertext.length > 0,
+        typeof anthropicSource.anthropicKeyCiphertext === "string" &&
+        anthropicSource.anthropicKeyCiphertext.length > 0,
       version: Number.isFinite(anthropicVersion) ? anthropicVersion : 0,
-      updatedAt: timestampToIso(data.anthropicUpdatedAt),
+      updatedAt: timestampToIso(anthropicSource.anthropicUpdatedAt),
     },
   };
 }

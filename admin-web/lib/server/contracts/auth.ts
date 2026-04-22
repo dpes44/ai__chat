@@ -1,0 +1,9 @@
+import { z } from "zod";
+
+export const adminLoginSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+  csrfToken: z.string().min(1),
+});
+
+export type AdminLoginPayload = z.infer<typeof adminLoginSchema>;

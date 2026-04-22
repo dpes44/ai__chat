@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ai_chat/src/models/forum_models.dart';
 
 class ForumRepository {
-  static const String _metaDocId = '_meta';
   final FirebaseFirestore _db;
   ForumRepository({FirebaseFirestore? db})
     : _db = db ?? FirebaseFirestore.instance;
@@ -10,16 +9,19 @@ class ForumRepository {
   Stream<List<ForumThread>> threadsStream({int limit = 30}) {
     return _db
         .collection('threads')
-        .orderBy('createdAt', descending: true)
-        .limit(limit)
+        .where('isHidden', isEqualTo: false)
         .snapshots()
-        .map(
-          (snap) => snap.docs
-              .where((doc) => doc.id != _metaDocId)
+        .map((snap) {
+          final rows = snap.docs
               .map(ForumThread.fromDoc)
               .where((row) => !row.isHidden)
-              .toList(),
-        );
+              .toList();
+          rows.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          if (rows.length > limit) {
+            return rows.sublist(0, limit);
+          }
+          return rows;
+        });
   }
 
   Stream<List<ForumReply>> repliesStream(String threadId, {int limit = 100}) {
@@ -27,16 +29,19 @@ class ForumRepository {
         .collection('threads')
         .doc(threadId)
         .collection('replies')
-        .orderBy('createdAt')
-        .limit(limit)
+        .where('isHidden', isEqualTo: false)
         .snapshots()
-        .map(
-          (snap) => snap.docs
-              .where((doc) => doc.id != _metaDocId)
+        .map((snap) {
+          final rows = snap.docs
               .map(ForumReply.fromDoc)
               .where((row) => !row.isHidden)
-              .toList(),
-        );
+              .toList();
+          rows.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          if (rows.length > limit) {
+            return rows.sublist(0, limit);
+          }
+          return rows;
+        });
   }
 
   Future<void> createThread({
