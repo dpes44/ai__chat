@@ -5,12 +5,16 @@ import { AdminApiSession, errorResponse, requireAdminSessionApi } from "./http";
 export async function withRouteError(params: {
   handler: () => Promise<NextResponse>;
   fallbackMessage?: string;
-  onError?: (error: unknown) => void;
+  onError?: (error: unknown) => void | Promise<void>;
 }): Promise<NextResponse> {
   try {
     return await params.handler();
   } catch (error) {
-    params.onError?.(error);
+    try {
+      await params.onError?.(error);
+    } catch (handlerError) {
+      console.error("withRouteError onError failed:", handlerError);
+    }
     return errorResponse(error, params.fallbackMessage);
   }
 }
@@ -18,7 +22,7 @@ export async function withRouteError(params: {
 export async function withAdminSessionRoute(params: {
   handler: (session: AdminApiSession) => Promise<NextResponse>;
   fallbackMessage?: string;
-  onError?: (error: unknown) => void;
+  onError?: (error: unknown, session: AdminApiSession) => void | Promise<void>;
 }): Promise<NextResponse> {
   const auth = await requireAdminSessionApi();
   if ("response" in auth) {
@@ -28,6 +32,6 @@ export async function withAdminSessionRoute(params: {
   return withRouteError({
     handler: () => params.handler(auth.session),
     fallbackMessage: params.fallbackMessage,
-    onError: params.onError,
+    onError: (error) => params.onError?.(error, auth.session),
   });
 }

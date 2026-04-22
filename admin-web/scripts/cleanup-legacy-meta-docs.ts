@@ -14,6 +14,7 @@ import {
   USERS_COLLECTION,
 } from "../lib/constants";
 import { db } from "../lib/firebase-admin";
+import { emitScriptSummary, parseScriptOptions } from "./lib/script-runtime";
 
 const META_DOC_ID = "_meta";
 
@@ -51,14 +52,43 @@ function legacyMetaPaths(): string[] {
 }
 
 async function main() {
-  const actor = process.argv[2]?.trim() || "script:cleanup-legacy-meta-docs";
+  const options = parseScriptOptions("script:cleanup-legacy-meta-docs");
   const summary: CleanupSummary = {
     deletedPaths: [],
     missingPaths: [],
     auditLogged: false,
   };
 
-  for (const path of legacyMetaPaths()) {
+  const allPaths = legacyMetaPaths();
+  const existingBefore: string[] = [];
+  for (const path of allPaths) {
+    const snap = await db.doc(path).get();
+    if (snap.exists) {
+      existingBefore.push(path);
+      continue;
+    }
+    summary.missingPaths.push(path);
+  }
+
+  if (options.dryRun) {
+    emitScriptSummary({
+      script: "cleanup-legacy-meta-docs",
+      dryRun: true,
+      driftDetected: existingBefore.length > 0,
+      ok: existingBefore.length === 0,
+      summary: {
+        actor: options.actor,
+        ...summary,
+        staleMetaPaths: existingBefore,
+      },
+    });
+    if (existingBefore.length > 0) {
+      process.exit(1);
+    }
+    return;
+  }
+
+  for (const path of existingBefore) {
     const deleted = await deleteDocIfExists(path);
     if (deleted) {
       summary.deletedPaths.push(path);
@@ -68,7 +98,7 @@ async function main() {
   }
 
   await logAudit({
-    actor,
+    actor: options.actor,
     action: "LEGACY_META_DOCS_CLEANED",
     target: "cleanup/_meta",
     diffSummary: JSON.stringify({
@@ -79,8 +109,32 @@ async function main() {
   });
   summary.auditLogged = true;
 
-  console.log("Legacy _meta cleanup complete.");
-  console.log(summary);
+  const remaining = (
+    await Promise.all(
+      allPaths.map(async (path) => {
+        const snap = await db.doc(path).get();
+        return snap.exists ? path : null;
+      }),
+    )
+  ).filter((value): value is string => value !== null);
+
+  const driftDetected = remaining.length > 0;
+
+  emitScriptSummary({
+    script: "cleanup-legacy-meta-docs",
+    dryRun: false,
+    driftDetected,
+    ok: !driftDetected,
+    summary: {
+      actor: options.actor,
+      ...summary,
+      remainingPaths: remaining,
+    },
+  });
+
+  if (driftDetected) {
+    process.exit(1);
+  }
 }
 
 main().catch((err) => {
