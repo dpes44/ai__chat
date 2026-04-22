@@ -1,108 +1,24 @@
-import crypto from "node:crypto";
-
-import { Timestamp } from "firebase-admin/firestore";
-
 import {
-  AI_REQUEST_LOGS_COLLECTION,
-  AI_ROUTING_DOC_PATH,
-  PROMPTS_DOC_PATH,
-  USERS_ROUTER_DOC_PATH,
-} from "@/lib/constants";
-import {
-  AiRoutingConfig,
-  buildSystemPrompt,
   estimateCostUsd,
-  normalizeRoutingConfig,
   parseGatewayRequest,
-  PromptContextConfig,
   Provider,
-  REQUEST_LOG_TTL_DAYS,
-  toUserHash,
 } from "@/lib/ai";
-import { callAnthropic, callOpenAI, ProviderError } from "@/lib/ai-providers";
-import { readAiPromptContextOverrides } from "@/lib/content-store";
-import { auth, db } from "@/lib/firebase-admin";
-import { getProviderApiKey } from "@/lib/provider-keys";
+import { ProviderError } from "@/lib/ai-providers";
 import { redactSensitiveText } from "@/lib/redaction";
-
-function bearerToken(request: Request): string | null {
-  const value = request.headers.get("authorization");
-  if (!value || !value.toLowerCase().startsWith("bearer ")) {
-    return null;
-  }
-  return value.slice(7).trim();
-}
-
-async function generateViaProvider(params: {
-  provider: Provider;
-  model: string;
-  temperature: number;
-  maxTokens: number;
-  history: { role: "user" | "assistant"; content: string }[];
-  userMessage: string;
-  language: "english" | "nepali";
-  userRegion?: string;
-  systemPromptTemplate: string;
-  promptContext: PromptContextConfig;
-}) {
-  const systemPrompt = buildSystemPrompt({
-    language: params.language,
-    userMessage: params.userMessage,
-    userRegion: params.userRegion,
-    systemPromptTemplate: params.systemPromptTemplate,
-    promptContext: params.promptContext,
-  });
-  let apiKey = "";
-  try {
-    apiKey = await getProviderApiKey(params.provider);
-  } catch (error) {
-    throw new ProviderError(
-      `Provider key unavailable for ${params.provider}.`,
-      `${params.provider.toUpperCase()}_KEY_UNAVAILABLE`,
-      undefined,
-      error instanceof Error ? error.message : String(error),
-    );
-  }
-
-  if (params.provider === "openai") {
-    return callOpenAI({
-      apiKey,
-      model: params.model,
-      temperature: params.temperature,
-      maxTokens: params.maxTokens,
-      systemPrompt,
-      history: params.history,
-      userMessage: params.userMessage,
-    });
-  }
-
-  return callAnthropic({
-    apiKey,
-    model: params.model,
-    temperature: params.temperature,
-    maxTokens: params.maxTokens,
-    systemPrompt,
-    history: params.history,
-    userMessage: params.userMessage,
-  });
-}
+import { authenticateBearerUid } from "./auth";
+import { generateViaProvider } from "./provider";
+import { createAiRequestLogMeta, writeAiRequestLog } from "./request-log";
+import { loadAiRoutingAndPromptContext } from "./routing";
 
 export async function handleAiChatPost(request: Request): Promise<{
   status: number;
   body: Record<string, unknown>;
 }> {
-  const idToken = bearerToken(request);
-  if (!idToken) {
-    return { status: 401, body: { error: "Missing bearer token." } };
+  const authResult = await authenticateBearerUid(request);
+  if (!("uid" in authResult)) {
+    return authResult;
   }
-
-  let uid = "";
-  try {
-    const decoded = await auth.verifyIdToken(idToken);
-    uid = decoded.uid;
-  } catch {
-    return { status: 401, body: { error: "Invalid auth token." } };
-  }
+  const uid = authResult.uid;
 
   let payload;
   try {
@@ -112,35 +28,7 @@ export async function handleAiChatPost(request: Request): Promise<{
     return { status: 400, body: { error: message } };
   }
 
-  const [routerSnap, promptsSnap, legacyRoutingSnap] = await Promise.all([
-    db.doc(USERS_ROUTER_DOC_PATH).get(),
-    db.doc(PROMPTS_DOC_PATH).get(),
-    db.doc(AI_ROUTING_DOC_PATH).get(),
-  ]);
-  const legacyRoutingData = legacyRoutingSnap.exists
-    ? (legacyRoutingSnap.data() as Partial<AiRoutingConfig>)
-    : {};
-  const routerData = routerSnap.exists
-    ? (routerSnap.data() as Partial<AiRoutingConfig>)
-    : {};
-  const promptTemplateOverride = (promptsSnap.data()?.systemPromptTemplate ?? "").toString();
-  const routing = normalizeRoutingConfig(
-    {
-      ...legacyRoutingData,
-      ...routerData,
-      ...(promptTemplateOverride
-        ? { systemPromptTemplate: promptTemplateOverride }
-        : {}),
-    },
-  );
-  const promptContextOverrides = await readAiPromptContextOverrides({
-    legacyPromptContext: routing.promptContext,
-  });
-  const promptContext: PromptContextConfig = {
-    ...routing.promptContext,
-    ...promptContextOverrides,
-  };
-
+  const { routing, promptContext } = await loadAiRoutingAndPromptContext();
   if (!routing.enabled) {
     return {
       status: 503,
@@ -148,13 +36,8 @@ export async function handleAiChatPost(request: Request): Promise<{
     };
   }
 
-  const requestId = crypto.randomUUID();
-  const startedAt = Date.now();
-  const createdAt = Timestamp.now();
-  const expireAt = Timestamp.fromDate(
-    new Date(Date.now() + REQUEST_LOG_TTL_DAYS * 24 * 60 * 60 * 1000),
-  );
-  const userIdHash = toUserHash(uid);
+  const logMeta = createAiRequestLogMeta(uid);
+  const promptChars = payload.message.length;
 
   let providerUsed: Provider = routing.activeProvider;
   let modelUsed = routing.activeModel;
@@ -189,19 +72,13 @@ export async function handleAiChatPost(request: Request): Promise<{
       throw new ProviderError("Empty response from active provider.", "EMPTY_ACTIVE_RESPONSE");
     }
 
-    const latencyMs = Date.now() - startedAt;
-
-    await db.collection(AI_REQUEST_LOGS_COLLECTION).doc(requestId).set({
-      requestId,
-      createdAt,
-      expireAt,
-      userIdHash,
-      provider: providerUsed,
-      model: modelUsed,
+    const { latencyMs } = await writeAiRequestLog({
+      meta: logMeta,
+      providerUsed,
+      modelUsed,
       fallbackUsed,
       status,
-      latencyMs,
-      promptChars: payload.message.length,
+      promptChars,
       responseChars: reply.text.length,
       tokenIn,
       tokenOut,
@@ -217,7 +94,7 @@ export async function handleAiChatPost(request: Request): Promise<{
         providerUsed,
         modelUsed,
         fallbackUsed,
-        requestId,
+        requestId: logMeta.requestId,
         latencyMs,
       },
     };
@@ -253,19 +130,13 @@ export async function handleAiChatPost(request: Request): Promise<{
         tokenOut = fallbackReply.tokenOut;
         estimatedCostUsd = estimateCostUsd(modelUsed, tokenIn, tokenOut);
 
-        const latencyMs = Date.now() - startedAt;
-
-        await db.collection(AI_REQUEST_LOGS_COLLECTION).doc(requestId).set({
-          requestId,
-          createdAt,
-          expireAt,
-          userIdHash,
-          provider: providerUsed,
-          model: modelUsed,
+        const { latencyMs } = await writeAiRequestLog({
+          meta: logMeta,
+          providerUsed,
+          modelUsed,
           fallbackUsed,
           status: "success",
-          latencyMs,
-          promptChars: payload.message.length,
+          promptChars,
           responseChars: fallbackReply.text.length,
           tokenIn,
           tokenOut,
@@ -284,7 +155,7 @@ export async function handleAiChatPost(request: Request): Promise<{
             providerUsed,
             modelUsed,
             fallbackUsed,
-            requestId,
+            requestId: logMeta.requestId,
             latencyMs,
           },
         };
@@ -308,18 +179,13 @@ export async function handleAiChatPost(request: Request): Promise<{
     }
   }
 
-  const latencyMs = Date.now() - startedAt;
-  await db.collection(AI_REQUEST_LOGS_COLLECTION).doc(requestId).set({
-    requestId,
-    createdAt,
-    expireAt,
-    userIdHash,
-    provider: providerUsed,
-    model: modelUsed,
+  await writeAiRequestLog({
+    meta: logMeta,
+    providerUsed,
+    modelUsed,
     fallbackUsed,
     status,
-    latencyMs,
-    promptChars: payload.message.length,
+    promptChars,
     responseChars: 0,
     tokenIn,
     tokenOut,
@@ -329,7 +195,7 @@ export async function handleAiChatPost(request: Request): Promise<{
   });
 
   console.error("POST /api/ai/chat failed", {
-    requestId,
+    requestId: logMeta.requestId,
     errorCode,
     providerUsed,
     modelUsed,
@@ -341,7 +207,7 @@ export async function handleAiChatPost(request: Request): Promise<{
     status: 503,
     body: {
       error: "AI service is temporarily unavailable.",
-      requestId,
+      requestId: logMeta.requestId,
       errorCode,
       primaryErrorCode,
       providerUsed,
