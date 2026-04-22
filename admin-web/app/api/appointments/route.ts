@@ -5,7 +5,8 @@ import {
   invalidCsrfResponse,
   invalidPayloadResponse,
 } from "@/lib/server/core/http";
-import { withAdminSessionRoute } from "@/lib/server/core/route";
+import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { appointmentsPostSchema } from "@/lib/server/contracts/appointments";
 import {
   listAppointmentsData,
@@ -14,16 +15,20 @@ import {
 } from "@/lib/server/domains/appointments/service";
 
 export async function GET() {
-  return withAdminSessionRoute({
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.appointments,
+    failureTarget: "GET /api/appointments",
     handler: async () => {
-    const data = await listAppointmentsData();
-    return NextResponse.json({ data });
+      const data = await listAppointmentsData();
+      return NextResponse.json({ data });
     },
   });
 }
 
 export async function POST(request: Request) {
-  return withAdminSessionRoute({
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.appointments,
+    failureTarget: "POST /api/appointments",
     handler: async (session) => {
       const body = await request.json();
       const parsed = appointmentsPostSchema.safeParse(body);

@@ -2,6 +2,7 @@ import { Timestamp } from "firebase-admin/firestore";
 
 import { ADMIN_AUDIT_LOGS_COLLECTION } from "../lib/constants";
 import { db } from "../lib/firebase-admin";
+import { ALL_ADMIN_API_FAILURE_ACTIONS } from "../lib/server/core/admin-api-failure-actions";
 import { emitScriptSummary, parseScriptOptions } from "./lib/script-runtime";
 
 type FailureRow = {
@@ -34,13 +35,7 @@ type AlertSummary = {
   notificationMessage: string;
 };
 
-const API_FAILURE_ACTIONS = [
-  "ADMIN_USERS_API_FAILED",
-  "ADMIN_FORUM_MODERATION_API_FAILED",
-  "ADMIN_ROUTER_API_FAILED",
-  "ADMIN_PROMPTS_API_FAILED",
-  "ADMIN_KEYS_API_FAILED",
-] as const;
+const API_FAILURE_ACTIONS = ALL_ADMIN_API_FAILURE_ACTIONS;
 
 function readEnv(name: string): string {
   return (process.env[name] ?? "").trim();

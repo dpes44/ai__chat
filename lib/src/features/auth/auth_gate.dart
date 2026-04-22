@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:ai_chat/src/features/auth/auth_screen.dart';
 import 'package:ai_chat/src/features/home/home_shell.dart';
 import 'package:ai_chat/src/features/onboarding/nickname_screen.dart';
-import 'package:ai_chat/src/models/user_profile.dart';
-import 'package:ai_chat/src/services/auth_service.dart';
-import 'package:ai_chat/src/services/user_profile_repository.dart';
+import 'package:ai_chat/src/features/auth/domain/user_profile.dart';
+import 'package:ai_chat/src/features/auth/data/auth_service.dart';
+import 'package:ai_chat/src/features/auth/data/user_profile_repository.dart';
 
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});

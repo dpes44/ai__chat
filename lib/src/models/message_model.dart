@@ -1,11 +1,1 @@
-class MessageModel {
-  final String text;
-  final bool isUser;
-  final DateTime timestamp;
-
-  const MessageModel({
-    required this.text,
-    required this.isUser,
-    required this.timestamp,
-  });
-}
+export 'package:ai_chat/src/features/chat/domain/message_model.dart';

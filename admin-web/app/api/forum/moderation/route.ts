@@ -5,8 +5,8 @@ import {
   invalidCsrfResponse,
   invalidPayloadResponse,
 } from "@/lib/server/core/http";
-import { logAdminApiFailure } from "@/lib/server/core/observability";
-import { withAdminSessionRoute } from "@/lib/server/core/route";
+import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { forumModerationUpdateSchema } from "@/lib/server/contracts/forum-moderation";
 import {
   listForumModerationData,
@@ -14,15 +14,9 @@ import {
 } from "@/lib/server/domains/forum-moderation/service";
 
 export async function GET() {
-  return withAdminSessionRoute({
-    onError: async (error, session) => {
-      await logAdminApiFailure({
-        actor: session.sub,
-        action: "ADMIN_FORUM_MODERATION_API_FAILED",
-        target: "GET /api/forum/moderation",
-        error,
-      });
-    },
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.forumModeration,
+    failureTarget: "GET /api/forum/moderation",
     handler: async () => {
       const data = await listForumModerationData();
       return NextResponse.json({ data });
@@ -31,15 +25,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  return withAdminSessionRoute({
-    onError: async (error, session) => {
-      await logAdminApiFailure({
-        actor: session.sub,
-        action: "ADMIN_FORUM_MODERATION_API_FAILED",
-        target: "POST /api/forum/moderation",
-        error,
-      });
-    },
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.forumModeration,
+    failureTarget: "POST /api/forum/moderation",
     handler: async (session) => {
       const body = await request.json();
       const parsed = forumModerationUpdateSchema.safeParse(body);

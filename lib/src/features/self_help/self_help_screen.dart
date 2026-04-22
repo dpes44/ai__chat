@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 import 'package:ai_chat/src/core/constants/app_strings.dart';
-import 'package:ai_chat/src/models/tool_item.dart';
-import 'package:ai_chat/src/services/tools_repository.dart';
+import 'package:ai_chat/src/features/content/domain/tool_item.dart';
+import 'package:ai_chat/src/features/content/data/tools_repository.dart';
 
 import 'tool_chat_screen.dart';
 

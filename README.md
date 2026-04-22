@@ -8,6 +8,7 @@ Mental health support app (Flutter) with a server-side AI gateway and admin dash
 - `admin-web/` Admin portal + AI gateway API (`POST /api/ai/chat`)
 - `functions/` legacy Firebase Functions path (kept for reference)
 - `docs/ai-admin-setup.md` setup guide for admin/gateway
+- `docs/admin-ops-runbook.md` post-deploy smoke + alerting runbook
 - `firestore.rules` + `firestore.indexes.json` Firestore security/index config
 
 ## Quick Start
@@ -33,6 +34,14 @@ Android emulator:
 
 ```bash
 flutter run --dart-define=AI_GATEWAY_BASE_URL=http://10.0.2.2:3000
+```
+
+## Architecture Guard
+
+To prevent regressions back to legacy import paths (`src/models`, `src/services`):
+
+```bash
+bash scripts/check_legacy_imports.sh
 ```
 
 ## Admin Features
@@ -69,3 +78,4 @@ ADMIN_LOCKOUT_MINUTES=15
 - Keep provider API keys server-side only (never in Flutter client).
 - Firestore rules must be deployed before full app testing.
 - For full setup and seeding admin credentials, see [`docs/ai-admin-setup.md`](docs/ai-admin-setup.md).
+- For post-deploy smoke checks and alert thresholds, see [`docs/admin-ops-runbook.md`](docs/admin-ops-runbook.md).

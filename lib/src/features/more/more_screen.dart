@@ -4,9 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 import 'package:ai_chat/src/core/constants/app_strings.dart';
 import 'package:ai_chat/src/core/widgets/language_option_tile.dart';
-import 'package:ai_chat/src/models/emergency_contact.dart';
-import 'package:ai_chat/src/services/auth_service.dart';
-import 'package:ai_chat/src/services/emergency_contacts_repository.dart';
+import 'package:ai_chat/src/features/content/domain/emergency_contact.dart';
+import 'package:ai_chat/src/features/auth/data/auth_service.dart';
+import 'package:ai_chat/src/features/content/data/emergency_contacts_repository.dart';
 import 'package:ai_chat/src/features/legal/privacy_policy_screen.dart';
 import 'package:ai_chat/src/features/legal/terms_screen.dart';
 

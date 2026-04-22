@@ -6,7 +6,8 @@ import {
   invalidCsrfResponse,
   invalidPayloadResponse,
 } from "@/lib/server/core/http";
-import { withAdminSessionRoute } from "@/lib/server/core/route";
+import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { contentUpdateSchema } from "@/lib/server/contracts/content";
 import {
   getAdminContentSettings,
@@ -14,23 +15,27 @@ import {
 } from "@/lib/server/domains/content/service";
 
 export async function GET() {
-  return withAdminSessionRoute({
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.content,
+    failureTarget: "GET /api/content",
     handler: async () => {
-    const data = await getAdminContentSettings();
-    return NextResponse.json({
-      data: {
-        promptContext: data.promptContext,
-        tools: data.tools,
-        therapistSubscriptions: data.therapistSubscriptions,
-        legalContent: data.legalContent,
-      },
-    });
+      const data = await getAdminContentSettings();
+      return NextResponse.json({
+        data: {
+          promptContext: data.promptContext,
+          tools: data.tools,
+          therapistSubscriptions: data.therapistSubscriptions,
+          legalContent: data.legalContent,
+        },
+      });
     },
   });
 }
 
 export async function POST(request: Request) {
-  return withAdminSessionRoute({
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.content,
+    failureTarget: "POST /api/content",
     handler: async (session) => {
       const body = await request.json();
       const parsed = contentUpdateSchema.safeParse(body);

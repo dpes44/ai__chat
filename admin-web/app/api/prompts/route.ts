@@ -5,8 +5,8 @@ import {
   invalidCsrfResponse,
   invalidPayloadResponse,
 } from "@/lib/server/core/http";
-import { logAdminApiFailure } from "@/lib/server/core/observability";
-import { withAdminSessionRoute } from "@/lib/server/core/route";
+import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { promptsUpdateSchema } from "@/lib/server/contracts/prompts";
 import {
   getSystemPromptTemplate,
@@ -14,15 +14,9 @@ import {
 } from "@/lib/server/domains/prompts/service";
 
 export async function GET() {
-  return withAdminSessionRoute({
-    onError: async (error, session) => {
-      await logAdminApiFailure({
-        actor: session.sub,
-        action: "ADMIN_PROMPTS_API_FAILED",
-        target: "GET /api/prompts",
-        error,
-      });
-    },
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.prompts,
+    failureTarget: "GET /api/prompts",
     handler: async () => {
       const systemPromptTemplate = await getSystemPromptTemplate();
 
@@ -36,15 +30,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  return withAdminSessionRoute({
-    onError: async (error, session) => {
-      await logAdminApiFailure({
-        actor: session.sub,
-        action: "ADMIN_PROMPTS_API_FAILED",
-        target: "POST /api/prompts",
-        error,
-      });
-    },
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.prompts,
+    failureTarget: "POST /api/prompts",
     handler: async (session) => {
       const body = await request.json();
       const parsed = promptsUpdateSchema.safeParse(body);

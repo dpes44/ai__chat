@@ -2,13 +2,16 @@ import { NextResponse } from "next/server";
 
 import { assertCsrfToken } from "@/lib/csrf";
 import { invalidCsrfResponse } from "@/lib/server/core/http";
-import { withAdminSessionRoute } from "@/lib/server/core/route";
+import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { uploadDoctorPhoto } from "@/lib/server/domains/appointments/doctor-photo/service";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  return withAdminSessionRoute({
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.appointments,
+    failureTarget: "POST /api/appointments/doctor-photo",
     fallbackMessage: "Could not upload doctor photo.",
     handler: async (session) => {
       const formData = await request.formData();

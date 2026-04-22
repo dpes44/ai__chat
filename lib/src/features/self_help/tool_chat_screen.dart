@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 import 'package:ai_chat/src/core/constants/app_strings.dart';
-import 'package:ai_chat/src/models/tool_item.dart';
+import 'package:ai_chat/src/features/content/domain/tool_item.dart';
 
 class ToolChatScreen extends StatefulWidget {
   final ToolItem tool;

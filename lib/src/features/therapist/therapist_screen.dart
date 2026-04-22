@@ -4,10 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import 'package:ai_chat/src/core/constants/app_colors.dart';
-import 'package:ai_chat/src/models/therapist_appointment.dart';
-import 'package:ai_chat/src/models/therapist_subscription.dart';
-import 'package:ai_chat/src/services/therapist_appointments_repository.dart';
-import 'package:ai_chat/src/services/therapist_subscriptions_repository.dart';
+import 'package:ai_chat/src/features/therapist/domain/therapist_appointment.dart';
+import 'package:ai_chat/src/features/content/domain/therapist_subscription.dart';
+import 'package:ai_chat/src/features/therapist/data/therapist_appointments_repository.dart';
+import 'package:ai_chat/src/features/content/data/therapist_subscriptions_repository.dart';
 
 class TherapistScreen extends StatefulWidget {
   final String nickname;

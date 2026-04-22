@@ -225,3 +225,16 @@ CI runs:
 - Admin web typecheck
 - Admin web emulator integration tests
 - Flutter `analyze`
+
+## 13) Post-deploy guardrails
+
+This repo now includes:
+
+- `.github/workflows/post-deploy-smoke.yml`
+  - Manual workflow to validate live admin APIs + Firestore structure.
+- `.github/workflows/admin-api-failure-alerts.yml`
+  - Scheduled/manual threshold checker for `*_API_FAILED` events in audit logs.
+
+For required secrets, variables, and run steps, see:
+
+- `docs/admin-ops-runbook.md`

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:ai_chat/src/core/constants/app_colors.dart';
-import 'package:ai_chat/src/services/mood_repository.dart';
+import 'package:ai_chat/src/features/mood/data/mood_repository.dart';
 
 class MoodTrackerScreen extends StatefulWidget {
   final String nickname;

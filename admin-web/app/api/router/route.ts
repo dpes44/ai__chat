@@ -5,8 +5,8 @@ import {
   invalidCsrfResponse,
   invalidPayloadResponse,
 } from "@/lib/server/core/http";
-import { logAdminApiFailure } from "@/lib/server/core/observability";
-import { withAdminSessionRoute } from "@/lib/server/core/route";
+import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { routerUpdateSchema } from "@/lib/server/contracts/router";
 import {
   getRouterConfig,
@@ -14,15 +14,9 @@ import {
 } from "@/lib/server/domains/router/service";
 
 export async function GET() {
-  return withAdminSessionRoute({
-    onError: async (error, session) => {
-      await logAdminApiFailure({
-        actor: session.sub,
-        action: "ADMIN_ROUTER_API_FAILED",
-        target: "GET /api/router",
-        error,
-      });
-    },
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.router,
+    failureTarget: "GET /api/router",
     handler: async () => {
       const data = await getRouterConfig();
       return NextResponse.json({ data });
@@ -31,15 +25,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  return withAdminSessionRoute({
-    onError: async (error, session) => {
-      await logAdminApiFailure({
-        actor: session.sub,
-        action: "ADMIN_ROUTER_API_FAILED",
-        target: "POST /api/router",
-        error,
-      });
-    },
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.router,
+    failureTarget: "POST /api/router",
     handler: async (session) => {
       const body = await request.json();
 

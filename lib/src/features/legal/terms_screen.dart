@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 import 'package:ai_chat/src/core/widgets/simple_markdown_view.dart';
-import 'package:ai_chat/src/models/runtime_content.dart';
-import 'package:ai_chat/src/services/runtime_content_service.dart';
+import 'package:ai_chat/src/features/content/domain/runtime_content.dart';
+import 'package:ai_chat/src/features/content/data/runtime_content_service.dart';
 
 class TermsScreen extends StatelessWidget {
   const TermsScreen({super.key});

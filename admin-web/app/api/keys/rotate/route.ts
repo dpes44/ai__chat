@@ -5,8 +5,8 @@ import {
   invalidCsrfResponse,
   invalidPayloadResponse,
 } from "@/lib/server/core/http";
-import { logAdminApiFailure } from "@/lib/server/core/observability";
-import { withAdminSessionRoute } from "@/lib/server/core/route";
+import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { rotateProviderKeySchema } from "@/lib/server/contracts/keys";
 import {
   listProviderKeyStatuses,
@@ -14,15 +14,9 @@ import {
 } from "@/lib/server/domains/keys/service";
 
 export async function POST(request: Request) {
-  return withAdminSessionRoute({
-    onError: async (error, session) => {
-      await logAdminApiFailure({
-        actor: session.sub,
-        action: "ADMIN_KEYS_API_FAILED",
-        target: "POST /api/keys/rotate",
-        error,
-      });
-    },
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.keys,
+    failureTarget: "POST /api/keys/rotate",
     handler: async (session) => {
       const body = await request.json();
       const parsed = rotateProviderKeySchema.safeParse(body);
@@ -50,15 +44,9 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  return withAdminSessionRoute({
-    onError: async (error, session) => {
-      await logAdminApiFailure({
-        actor: session.sub,
-        action: "ADMIN_KEYS_API_FAILED",
-        target: "GET /api/keys/rotate",
-        error,
-      });
-    },
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.keys,
+    failureTarget: "GET /api/keys/rotate",
     handler: async () => {
       const data = await listProviderKeyStatuses();
       return NextResponse.json({ data });

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 import 'package:ai_chat/src/core/constants/app_strings.dart';
-import 'package:ai_chat/src/models/message_model.dart';
-import 'package:ai_chat/src/services/api_service.dart';
+import 'package:ai_chat/src/features/chat/domain/message_model.dart';
+import 'package:ai_chat/src/features/chat/data/api_service.dart';
 
 class ChatScreen extends StatefulWidget {
   final String nickname;

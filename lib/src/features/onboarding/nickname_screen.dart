@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
 import 'package:ai_chat/src/features/home/home_shell.dart';
-import 'package:ai_chat/src/services/user_profile_repository.dart';
+import 'package:ai_chat/src/features/auth/data/user_profile_repository.dart';
 
 class NicknameScreen extends StatefulWidget {
   const NicknameScreen({super.key, this.onSaved});

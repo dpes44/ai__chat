@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ai_chat/src/core/constants/app_colors.dart';
-import 'package:ai_chat/src/models/forum_models.dart';
-import 'package:ai_chat/src/services/forum_repository.dart';
+import 'package:ai_chat/src/features/forum/domain/forum_models.dart';
+import 'package:ai_chat/src/features/forum/data/forum_repository.dart';
 
 class ForumScreen extends StatefulWidget {
   final String nickname;

@@ -5,8 +5,8 @@ import {
   invalidCsrfResponse,
   invalidPayloadResponse,
 } from "@/lib/server/core/http";
-import { logAdminApiFailure } from "@/lib/server/core/observability";
-import { withAdminSessionRoute } from "@/lib/server/core/route";
+import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { usersPostSchema } from "@/lib/server/contracts/users";
 import {
   deleteAdminUser,
@@ -25,15 +25,9 @@ function normalizeScope(value: string | null): UsersListScope {
 }
 
 export async function GET(request: Request) {
-  return withAdminSessionRoute({
-    onError: async (error, session) => {
-      await logAdminApiFailure({
-        actor: session.sub,
-        action: "ADMIN_USERS_API_FAILED",
-        target: "GET /api/users",
-        error,
-      });
-    },
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.users,
+    failureTarget: "GET /api/users",
     handler: async () => {
       const scope = normalizeScope(new URL(request.url).searchParams.get("scope"));
       const data = await listAdminUsers(scope);
@@ -43,15 +37,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  return withAdminSessionRoute({
-    onError: async (error, session) => {
-      await logAdminApiFailure({
-        actor: session.sub,
-        action: "ADMIN_USERS_API_FAILED",
-        target: "POST /api/users",
-        error,
-      });
-    },
+  return withAdminAuditedRoute({
+    failureAction: ADMIN_API_FAILURE_ACTIONS.users,
+    failureTarget: "POST /api/users",
     handler: async (session) => {
       const body = await request.json().catch(() => ({}));
       const parsed = usersPostSchema.safeParse(body);

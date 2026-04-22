@@ -2,6 +2,7 @@ import { ADMIN_AUDIT_LOGS_COLLECTION } from "@/lib/constants";
 import { db } from "@/lib/firebase-admin";
 import { requireAdminSession } from "@/lib/session";
 import InsightsMenu from "@/components/InsightsMenu";
+import { ALL_ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
 
 type AuditRow = {
   id: string;
@@ -18,13 +19,7 @@ type FailureDetails = {
   message?: string;
 };
 
-const API_FAILURE_ACTIONS = new Set([
-  "ADMIN_USERS_API_FAILED",
-  "ADMIN_FORUM_MODERATION_API_FAILED",
-  "ADMIN_ROUTER_API_FAILED",
-  "ADMIN_PROMPTS_API_FAILED",
-  "ADMIN_KEYS_API_FAILED",
-]);
+const API_FAILURE_ACTIONS = new Set<string>(ALL_ADMIN_API_FAILURE_ACTIONS);
 
 function toIso(createdAt: AuditRow["createdAt"]): string {
   if (!createdAt) {
