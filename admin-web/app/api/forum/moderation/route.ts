@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { assertCsrfToken } from "@/lib/csrf";
-import {
-  invalidCsrfResponse,
-  invalidPayloadResponse,
-} from "@/lib/server/core/http";
 import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { parseJsonBodyWithCsrf } from "@/lib/server/core/request";
 import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { forumModerationUpdateSchema } from "@/lib/server/contracts/forum-moderation";
 import {
@@ -29,14 +25,12 @@ export async function POST(request: Request) {
     failureAction: ADMIN_API_FAILURE_ACTIONS.forumModeration,
     failureTarget: "POST /api/forum/moderation",
     handler: async (session) => {
-      const body = await request.json();
-      const parsed = forumModerationUpdateSchema.safeParse(body);
-      if (!parsed.success) {
-        return invalidPayloadResponse();
-      }
-
-      if (!assertCsrfToken(parsed.data.csrfToken)) {
-        return invalidCsrfResponse();
+      const parsed = await parseJsonBodyWithCsrf({
+        request,
+        schema: forumModerationUpdateSchema,
+      });
+      if ("response" in parsed) {
+        return parsed.response;
       }
 
       await moderateForumContent({

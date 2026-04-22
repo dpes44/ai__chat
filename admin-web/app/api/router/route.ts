@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { assertCsrfToken } from "@/lib/csrf";
-import {
-  invalidCsrfResponse,
-  invalidPayloadResponse,
-} from "@/lib/server/core/http";
 import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { parseJsonBodyWithCsrf } from "@/lib/server/core/request";
 import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { routerUpdateSchema } from "@/lib/server/contracts/router";
 import {
@@ -29,15 +25,12 @@ export async function POST(request: Request) {
     failureAction: ADMIN_API_FAILURE_ACTIONS.router,
     failureTarget: "POST /api/router",
     handler: async (session) => {
-      const body = await request.json();
-
-      const parsed = routerUpdateSchema.safeParse(body);
-      if (!parsed.success) {
-        return invalidPayloadResponse();
-      }
-
-      if (!assertCsrfToken(parsed.data.csrfToken)) {
-        return invalidCsrfResponse();
+      const parsed = await parseJsonBodyWithCsrf({
+        request,
+        schema: routerUpdateSchema,
+      });
+      if ("response" in parsed) {
+        return parsed.response;
       }
 
       await updateRouterConfig({

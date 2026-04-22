@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { ContentSettingsPayload } from "@/lib/content-store";
-import { assertCsrfToken } from "@/lib/csrf";
-import {
-  invalidCsrfResponse,
-  invalidPayloadResponse,
-} from "@/lib/server/core/http";
 import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { parseJsonBodyWithCsrf } from "@/lib/server/core/request";
 import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { contentUpdateSchema } from "@/lib/server/contracts/content";
 import {
@@ -37,19 +33,20 @@ export async function POST(request: Request) {
     failureAction: ADMIN_API_FAILURE_ACTIONS.content,
     failureTarget: "POST /api/content",
     handler: async (session) => {
-      const body = await request.json();
-      const parsed = contentUpdateSchema.safeParse(body);
-      if (!parsed.success) {
-        const issue = parsed.error.issues[0];
-        const path = issue?.path?.length ? issue.path.join(".") : "";
-        const message = issue?.message ?? "Invalid payload.";
-        return invalidPayloadResponse(
-          path ? `Invalid payload at "${path}": ${message}` : `Invalid payload: ${message}`,
-        );
-      }
-
-      if (!assertCsrfToken(parsed.data.csrfToken)) {
-        return invalidCsrfResponse();
+      const parsed = await parseJsonBodyWithCsrf({
+        request,
+        schema: contentUpdateSchema,
+        invalidPayloadMessage: (error) => {
+          const issue = error.issues[0];
+          const path = issue?.path?.length ? issue.path.join(".") : "";
+          const message = issue?.message ?? "Invalid payload.";
+          return path
+            ? `Invalid payload at "${path}": ${message}`
+            : `Invalid payload: ${message}`;
+        },
+      });
+      if ("response" in parsed) {
+        return parsed.response;
       }
 
       const nextConfig: ContentSettingsPayload = {

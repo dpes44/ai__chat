@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { assertCsrfToken } from "@/lib/csrf";
-import {
-  invalidCsrfResponse,
-  invalidPayloadResponse,
-} from "@/lib/server/core/http";
 import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { parseJsonBodyWithCsrf } from "@/lib/server/core/request";
 import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { usersPostSchema } from "@/lib/server/contracts/users";
 import {
@@ -41,14 +37,12 @@ export async function POST(request: Request) {
     failureAction: ADMIN_API_FAILURE_ACTIONS.users,
     failureTarget: "POST /api/users",
     handler: async (session) => {
-      const body = await request.json().catch(() => ({}));
-      const parsed = usersPostSchema.safeParse(body);
-      if (!parsed.success) {
-        return invalidPayloadResponse();
-      }
-
-      if (!assertCsrfToken(parsed.data.csrfToken)) {
-        return invalidCsrfResponse();
+      const parsed = await parseJsonBodyWithCsrf({
+        request,
+        schema: usersPostSchema,
+      });
+      if ("response" in parsed) {
+        return parsed.response;
       }
 
       if (parsed.data.action === "setBanStatus") {

@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { assertCsrfToken } from "@/lib/csrf";
-import {
-  invalidCsrfResponse,
-  invalidPayloadResponse,
-} from "@/lib/server/core/http";
 import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { parseJsonBodyWithCsrf } from "@/lib/server/core/request";
 import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { rotateProviderKeySchema } from "@/lib/server/contracts/keys";
 import {
@@ -18,15 +14,12 @@ export async function POST(request: Request) {
     failureAction: ADMIN_API_FAILURE_ACTIONS.keys,
     failureTarget: "POST /api/keys/rotate",
     handler: async (session) => {
-      const body = await request.json();
-      const parsed = rotateProviderKeySchema.safeParse(body);
-
-      if (!parsed.success) {
-        return invalidPayloadResponse();
-      }
-
-      if (!assertCsrfToken(parsed.data.csrfToken)) {
-        return invalidCsrfResponse();
+      const parsed = await parseJsonBodyWithCsrf({
+        request,
+        schema: rotateProviderKeySchema,
+      });
+      if ("response" in parsed) {
+        return parsed.response;
       }
 
       const result = await rotateProviderKey({

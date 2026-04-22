@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { assertCsrfToken } from "@/lib/csrf";
-import {
-  invalidCsrfResponse,
-  invalidPayloadResponse,
-} from "@/lib/server/core/http";
 import { ADMIN_API_FAILURE_ACTIONS } from "@/lib/server/core/admin-api-failure-actions";
+import { parseJsonBodyWithCsrf } from "@/lib/server/core/request";
 import { withAdminAuditedRoute } from "@/lib/server/core/route";
 import { appointmentsPostSchema } from "@/lib/server/contracts/appointments";
 import {
@@ -30,16 +26,16 @@ export async function POST(request: Request) {
     failureAction: ADMIN_API_FAILURE_ACTIONS.appointments,
     failureTarget: "POST /api/appointments",
     handler: async (session) => {
-      const body = await request.json();
-      const parsed = appointmentsPostSchema.safeParse(body);
-      if (!parsed.success) {
-        const issue = parsed.error.issues[0];
-        const detail = issue?.message ?? "Invalid payload.";
-        return invalidPayloadResponse(detail);
-      }
-
-      if (!assertCsrfToken(parsed.data.csrfToken)) {
-        return invalidCsrfResponse();
+      const parsed = await parseJsonBodyWithCsrf({
+        request,
+        schema: appointmentsPostSchema,
+        invalidPayloadMessage: (error) => {
+          const issue = error.issues[0];
+          return issue?.message ?? "Invalid payload.";
+        },
+      });
+      if ("response" in parsed) {
+        return parsed.response;
       }
 
       if (parsed.data.action === "upsertDoctor") {
