@@ -32,4 +32,4 @@ firebase emulators:exec \
   --config ../firebase.json \
   --project "$PROJECT_ID" \
   --only auth,firestore \
-  "node --import tsx --test tests/integration/**/*.test.ts"
+  "node --import tsx --test --test-concurrency=1 tests/integration/**/*.test.ts"

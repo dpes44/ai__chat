@@ -1,0 +1,53 @@
+name: Admin API Failure Alerts
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      window_minutes:
+        description: "Lookback window in minutes"
+        required: false
+        default: "15"
+        type: string
+      per_action_threshold:
+        description: "Alert when one action reaches this count"
+        required: false
+        default: "3"
+        type: string
+      total_threshold:
+        description: "Alert when total failures reach this count"
+        required: false
+        default: "5"
+        type: string
+
+jobs:
+  check-alert-threshold:
+    name: Check Audit Failure Thresholds
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin-web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: admin-web/package-lock.json
+
+      - name: Install Admin Web Dependencies
+        run: npm ci
+
+      - name: Evaluate Failure Thresholds
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          ADMIN_FAILURE_ALERT_WEBHOOK_URL: ${{ secrets.ADMIN_FAILURE_ALERT_WEBHOOK_URL }}
+          API_FAILURE_ALERT_WINDOW_MINUTES: ${{ github.event.inputs.window_minutes || vars.API_FAILURE_ALERT_WINDOW_MINUTES }}
+          API_FAILURE_ALERT_THRESHOLD: ${{ github.event.inputs.per_action_threshold || vars.API_FAILURE_ALERT_THRESHOLD }}
+          API_FAILURE_ALERT_TOTAL_THRESHOLD: ${{ github.event.inputs.total_threshold || vars.API_FAILURE_ALERT_TOTAL_THRESHOLD }}
+        run: npm run alert:audit-failures
