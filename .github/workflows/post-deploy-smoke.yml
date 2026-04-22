@@ -1,0 +1,48 @@
+name: Post-Deploy Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      admin_base_url:
+        description: "Deployed admin-web URL (for example: https://admin.example.com)"
+        required: true
+        type: string
+      skip_firestore:
+        description: "Skip Firestore structure checks"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+jobs:
+  smoke:
+    name: Live Smoke Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin-web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: admin-web/package-lock.json
+
+      - name: Install Admin Web Dependencies
+        run: npm ci
+
+      - name: Run Post-Deploy Smoke Checks
+        env:
+          ADMIN_WEB_BASE_URL: ${{ inputs.admin_base_url }}
+          ADMIN_SMOKE_USERNAME: ${{ secrets.ADMIN_SMOKE_USERNAME }}
+          ADMIN_SMOKE_PASSWORD: ${{ secrets.ADMIN_SMOKE_PASSWORD }}
+          SMOKE_SKIP_FIRESTORE: ${{ inputs.skip_firestore == 'true' && '1' || '0' }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: npm run smoke:prod
