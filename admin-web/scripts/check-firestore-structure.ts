@@ -7,6 +7,7 @@ import {
   USERS_ROUTER_DOC_PATH,
 } from "../lib/constants";
 import { db } from "../lib/firebase-admin";
+import { emitScriptSummary, parseScriptOptions } from "./lib/script-runtime";
 
 type CheckSummary = {
   checkedDocs: string[];
@@ -48,6 +49,7 @@ const REQUIRED_COLLECTION_NAMES = [
 ];
 
 async function main() {
+  const options = parseScriptOptions("script:check-firestore-structure");
   const docSnaps = await Promise.all(REQUIRED_DOCS.map((path) => db.doc(path).get()));
   const missingDocs = REQUIRED_DOCS.filter((_, index) => !docSnaps[index]?.exists);
 
@@ -69,14 +71,22 @@ async function main() {
     missingFromBootstrap,
   };
 
-  if (missingDocs.length || missingFromBootstrap.length) {
-    console.error("Firestore structure check failed.");
-    console.error(summary);
+  const driftDetected = missingDocs.length > 0 || missingFromBootstrap.length > 0;
+
+  emitScriptSummary({
+    script: "check-firestore-structure",
+    dryRun: options.dryRun,
+    driftDetected,
+    ok: !driftDetected,
+    summary: {
+      actor: options.actor,
+      ...summary,
+    },
+  });
+
+  if (driftDetected) {
     process.exit(1);
   }
-
-  console.log("Firestore structure check passed.");
-  console.log(summary);
 }
 
 main().catch((error) => {

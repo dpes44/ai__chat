@@ -5,6 +5,7 @@ import {
   invalidCsrfResponse,
   invalidPayloadResponse,
 } from "@/lib/server/core/http";
+import { logAdminApiFailure } from "@/lib/server/core/observability";
 import { withAdminSessionRoute } from "@/lib/server/core/route";
 import { rotateProviderKeySchema } from "@/lib/server/contracts/keys";
 import {
@@ -14,8 +15,13 @@ import {
 
 export async function POST(request: Request) {
   return withAdminSessionRoute({
-    onError: (error) => {
-      console.error("POST /api/keys/rotate failed:", error);
+    onError: async (error, session) => {
+      await logAdminApiFailure({
+        actor: session.sub,
+        action: "ADMIN_KEYS_API_FAILED",
+        target: "POST /api/keys/rotate",
+        error,
+      });
     },
     handler: async (session) => {
       const body = await request.json();
@@ -45,8 +51,13 @@ export async function POST(request: Request) {
 
 export async function GET() {
   return withAdminSessionRoute({
-    onError: (error) => {
-      console.error("GET /api/keys/rotate failed:", error);
+    onError: async (error, session) => {
+      await logAdminApiFailure({
+        actor: session.sub,
+        action: "ADMIN_KEYS_API_FAILED",
+        target: "GET /api/keys/rotate",
+        error,
+      });
     },
     handler: async () => {
       const data = await listProviderKeyStatuses();
